@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS2 Inventory Tracker</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --bg2: #1a1d27;
+    --bg3: #22263a;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --text: #e8eaf0;
+    --text2: #8b90a7;
+    --accent: #e8a045;
+    --green: #4caf7d;
+    --red: #e05656;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid var(--border); background: var(--bg2); position: sticky; top: 0; z-index: 10; }
+  .topbar-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .topbar-title span { color: var(--accent); }
+  .nav { display: flex; gap: 4px; }
+  .nav-btn { background: none; border: none; color: var(--text2); font-size: 14px; font-weight: 500; padding: 7px 14px; border-radius: var(--radius-sm); cursor: pointer; transition: all .15s; }
+  .nav-btn:hover { background: var(--bg3); color: var(--text); }
+  .nav-btn.active { background: var(--bg3); color: var(--text); }
+
+  .content { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .section { margin-bottom: 20px; }
+  .card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+  h3 { font-size: 14px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+
+  .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  input[type=text], input[type=number] {
+    flex: 1; height: 38px; padding: 0 12px; font-size: 14px;
+    background: var(--bg3); border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm); color: var(--text); outline: none;
+  }
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--text2); }
+
+  .btn { height: 38px; padding: 0 16px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: var(--radius-sm); border: none; transition: all .15s; white-space: nowrap; }
+  .btn-default { background: var(--bg3); color: var(--text); border: 0.5px solid var(--border2); }
+  .btn-default:hover { background: var(--border2); }
+  .btn-accent { background: var(--accent); color: #000; }
+  .btn-accent:hover { opacity: .85; }
+  .btn-danger { background: none; color: var(--red); border: 0.5px solid var(--border); font-size: 12px; height: 28px; padding: 0 10px; }
+  .btn-danger:hover { background: rgba(224,86,86,.1); }
+  .btn-full { width: 100%; height: 42px; font-size: 14px; }
+
+  .hint { font-size: 12px; color: var(--text2); margin-top: 6px; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .tag { display: flex; align-items: center; gap: 8px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 5px 12px; font-size: 13px; }
+  .tag-x { background: none; border: none; cursor: pointer; color: var(--text2); font-size: 14px; line-height: 1; padding: 0; }
+  .tag-x:hover { color: var(--red); }
+
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .metric { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .metric-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .metric-value { font-size: 26px; font-weight: 700; color: var(--text); }
+  .metric-value.accent { color: var(--accent); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 9px 12px; color: var(--text2); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; border-bottom: 0.5px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+
+  .badge { border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: rgba(76,175,125,.15); color: var(--green); }
+  .badge-gray { background: var(--bg3); color: var(--text2); }
+  .badge-orange { background: rgba(232,160,69,.15); color: var(--accent); }
+
+  .case-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+  .case-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; transition: border-color .15s; }
+  .case-card:hover { border-color: var(--border2); }
+  .case-name { font-size: 12px; color: var(--text2); margin-bottom: 8px; line-height: 1.4; }
+  .case-qty { font-size: 32px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .case-price-unit { font-size: 12px; color: var(--text2); }
+  .case-total { font-size: 14px; font-weight: 600; color: var(--accent); margin-top: 6px; }
+
+  .sync-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .sync-status { font-size: 13px; color: var(--text2); }
+  .last-sync { font-size: 12px; color: var(--text2); margin-left: auto; }
+
+  .empty { font-size: 13px; color: var(--text2); padding: 16px 0; }
+
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(0,0,0,.3); border-top-color: #000; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: -2px; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    .topbar { padding: 12px 14px; }
+    .topbar-title { font-size: 14px; }
+    .nav-btn { padding: 6px 10px; font-size: 13px; }
+    .content { padding: 16px 12px; }
+    .case-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .metric-value { font-size: 22px; }
+    th, td { padding: 8px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">CS2 <span>Tracker</span></div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showPage('home')">Головна</button>
+    <button class="nav-btn" onclick="showPage('settings')">Налаштування</button>
+  </nav>
+</div>
+
+<div class="content">
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="sync-bar">
+      <button class="btn btn-accent" onclick="runSync()" id="sync-btn">Оновити інвентарі</button>
+      <span class="sync-status" id="sync-status"></span>
+      <span class="last-sync" id="last-sync"></span>
+    </div>
+
+    <div class="metric-grid" id="home-metrics">
+      <div class="metric"><div class="metric-label">Акаунтів</div><div class="metric-value">—</div></div>
+      <div class="metric"><div class="metric-label">Предметів</div><div class="metric-value">—</div></div>
+      <div class="metric"><div class="metric-label">Вартість</div><div class="metric-value accent">—</div></div>
+    </div>
+
+    <div class="section card" style="margin-bottom:20px">
+      <h3>Акаунти</h3>
+      <div id="accounts-empty" class="empty" style="display:none">Акаунтів немає. Додай у налаштуваннях.</div>
+      <table id="accounts-table-wrap" style="display:none">
+        <thead><tr><th>SteamID64</th><th>Предметів</th><th>Вартість</th><th>Статус</th></tr></thead>
+        <tbody id="accounts-body"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h3 style="font-size:14px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Кейси</h3>
+      <div id="cases-empty" class="empty" style="display:none">Предметів немає. Додай у налаштуваннях.</div>
+      <div class="case-grid" id="cases-grid"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="section card">
+      <h3>Steam акаунти</h3>
+      <div class="row">
+        <input type="text" id="inp-steam" placeholder="SteamID64 (17 цифр, напр. 76561198012345678)" maxlength="17" />
+        <button class="btn btn-default" onclick="addSteam()">Додати</button>
+      </div>
+      <div class="hint">Інвентар повинен бути публічним: Steam → Профіль → Редагувати → Конфіденційність → Інвентар: Публічний</div>
+      <div class="tag-list" id="steam-tags"></div>
+    </div>
+
+    <div class="section card">
+      <h3>Предмети та ціни</h3>
+      <div class="row">
+        <input type="text" id="inp-item" placeholder="Назва (точно як у Steam Market)" style="flex:2" />
+        <input type="number" id="inp-price" placeholder="Ціна $" min="0" step="0.01" style="flex:0.6;min-width:90px" />
+        <button class="btn btn-default" onclick="addItem()">Додати</button>
+      </div>
+      <div class="hint">Приклад: Dreams &amp; Nightmares Case = 0.50 &nbsp;|&nbsp; Recoil Case = 0.30</div>
+      <div class="tag-list" id="item-tags"></div>
+    </div>
+
+    <div class="section card">
+      <h3>Дані</h3>
+      <div class="row" style="flex-wrap:wrap;gap:8px">
+        <button class="btn btn-default" onclick="exportData()">⬇ Експорт JSON</button>
+        <button class="btn btn-default" onclick="document.getElementById('import-file').click()">⬆ Імпорт JSON</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)" />
+      </div>
+      <div class="hint">Зберігай резервну копію або перенось дані між пристроями.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PROXY = 'https://corsproxy.io/?';
+const LS_KEY = 'cs2tracker_v1';
+
+let state = { accounts: [], items: {}, inventories: {}, lastSync: null };
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch(e) {}
+  renderAll();
+}
+
+function saveState() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  document.querySelectorAll('.nav-btn')[p === 'home' ? 0 : 1].classList.add('active');
+}
+
+function addSteam() {
+  const v = document.getElementById('inp-steam').value.trim();
+  if (!/^\d{17}$/.test(v)) { alert('Введи коректний SteamID64 (рівно 17 цифр)'); return; }
+  if (state.accounts.includes(v)) { alert('Цей акаунт вже додано'); return; }
+  state.accounts.push(v);
+  document.getElementById('inp-steam').value = '';
+  saveState(); renderSettings(); renderHome();
+}
+
+function removeSteam(id) {
+  if (!confirm('Видалити акаунт ' + id + '?')) return;
+  state.accounts = state.accounts.filter(x => x !== id);
+  delete state.inventories[id];
+  saveState(); renderSettings(); renderHome();
+}
+
+function addItem() {
+  const name = document.getElementById('inp-item').value.trim();
+  const price = parseFloat(document.getElementById('inp-price').value);
+  if (!name) { alert('Введи назву предмету'); return; }
+  if (isNaN(price) || price < 0) { alert('Введи коректну ціну'); return; }
+  state.items[name] = price;
+  document.getElementById('inp-item').value = '';
+  document.getElementById('inp-price').value = '';
+  saveState(); renderSettings(); renderHome();
+}
+
+function removeItem(name) {
+  delete state.items[name];
+  saveState(); renderSettings(); renderHome();
+}
+
+function renderSettings() {
+  const sl = document.getElementById('steam-tags');
+  sl.innerHTML = state.accounts.length
+    ? state.accounts.map(id =>
+        `<div class="tag">${id}<button class="tag-x" onclick="removeSteam('${id}')">✕</button></div>`
+      ).join('')
+    : '<span style="font-size:13px;color:var(--text2)">Немає акаунтів</span>';
+
+  const il = document.getElementById('item-tags');
+  il.innerHTML = Object.keys(state.items).length
+    ? Object.entries(state.items).map(([n, p]) =>
+        `<div class="tag">${n} — $${p.toFixed(2)}<button class="tag-x" onclick="removeItem(${JSON.stringify(n)})">✕</button></div>`
+      ).join('')
+    : '<span style="font-size:13px;color:var(--text2)">Немає предметів</span>';
+}
+
+function computeAccount(id) {
+  const inv = state.inventories[id] || [];
+  let count = 0, value = 0;
+  const found = {};
+  for (const name of inv) {
+    if (Object.prototype.hasOwnProperty.call(state.items, name)) {
+      found[name] = (found[name] || 0) + 1;
+      count++;
+      value += state.items[name];
+    }
+  }
+  return { count, value, found };
+}
+
+function renderHome() {
+  const accs = state.accounts;
+  const itemNames = Object.keys(state.items);
+  let totalItems = 0, totalValue = 0;
+  const caseCount = {};
+  itemNames.forEach(n => { caseCount[n] = 0; });
+
+  accs.forEach(id => {
+    const d = computeAccount(id);
+    totalItems += d.count;
+    totalValue += d.value;
+    for (const [n, c] of Object.entries(d.found)) caseCount[n] = (caseCount[n] || 0) + c;
+  });
+
+  document.getElementById('home-metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">Акаунтів</div><div class="metric-value">${accs.length}</div></div>
+    <div class="metric"><div class="metric-label">Предметів</div><div class="metric-value">${totalItems}</div></div>
+    <div class="metric"><div class="metric-label">Вартість</div><div class="metric-value accent">$${totalValue.toFixed(2)}</div></div>
+  `;
+
+  const tbody = document.getElementById('accounts-body');
+  const tableWrap = document.getElementById('accounts-table-wrap');
+  const emptyEl = document.getElementById('accounts-empty');
+  if (accs.length === 0) {
+    tableWrap.style.display = 'none';
+    emptyEl.style.display = '';
+  } else {
+    tableWrap.style.display = 'table';
+    emptyEl.style.display = 'none';
+    tbody.innerHTML = accs.map(id => {
+      const d = computeAccount(id);
+      const hasInv = state.inventories[id] !== undefined;
+      const badge = hasInv
+        ? `<span class="badge badge-green">Завантажено</span>`
+        : `<span class="badge badge-gray">Не оновлено</span>`;
+      return `<tr>
+        <td style="font-family:monospace;font-size:12px">${id}</td>
+        <td>${d.count}</td>
+        <td style="color:var(--accent);font-weight:600">$${d.value.toFixed(2)}</td>
+        <td>${badge}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const grid = document.getElementById('cases-grid');
+  const casesEmpty = document.getElementById('cases-empty');
+  if (itemNames.length === 0) {
+    grid.innerHTML = '';
+    casesEmpty.style.display = '';
+  } else {
+    casesEmpty.style.display = 'none';
+    grid.innerHTML = itemNames.map(name => {
+      const qty = caseCount[name] || 0;
+      const total = (qty * state.items[name]).toFixed(2);
+      return `<div class="case-card">
+        <div class="case-name">${escHtml(name)}</div>
+        <div class="case-qty">${qty}</div>
+        <div class="case-price-unit">$${state.items[name].toFixed(2)} за шт.</div>
+        <div class="case-total">= $${total}</div>
+      </div>`;
+    }).join('');
+  }
+
+  const ls = document.getElementById('last-sync');
+  ls.textContent = state.lastSync ? 'Оновлено: ' + new Date(state.lastSync).toLocaleString('uk-UA') : '';
+}
+
+function renderAll() { renderSettings(); renderHome(); }
+
+async function fetchInventory(steamId) {
+  const url = `https://steamcommunity.com/inventory/${steamId}/730/2?l=english&count=5000`;
+  const res = await fetch(PROXY + encodeURIComponent(url));
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (!data || !data.descriptions) return [];
+  return data.descriptions.map(d => d.market_hash_name);
+}
+
+async function runSync() {
+  if (state.accounts.length === 0) { alert('Спочатку додай акаунти у налаштуваннях'); return; }
+  const btn = document.getElementById('sync-btn');
+  const statusEl = document.getElementById('sync-status');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Завантаження...';
+  let errors = 0;
+  for (let i = 0; i < state.accounts.length; i++) {
+    const id = state.accounts[i];
+    statusEl.textContent = `Акаунт ${i + 1}/${state.accounts.length}...`;
+    try {
+      state.inventories[id] = await fetchInventory(id);
+    } catch(e) {
+      errors++;
+      console.warn('Помилка для', id, e);
+    }
+    if (i < state.accounts.length - 1) await sleep(800);
+  }
+  state.lastSync = Date.now();
+  saveState();
+  renderHome();
+  btn.disabled = false;
+  btn.textContent = 'Оновити інвентарі';
+  statusEl.textContent = errors
+    ? `Готово. Помилок: ${errors} (закритий інвентар?)`
+    : 'Оновлено успішно ✓';
+  setTimeout(() => { statusEl.textContent = ''; }, 4000);
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cs2tracker-backup.json';
+  a.click();
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const parsed = JSON.parse(ev.target.result);
+      if (!parsed.accounts || !parsed.items) throw new Error('Невірний формат');
+      state = parsed;
+      saveState();
+      renderAll();
+      alert('Дані імпортовано успішно!');
+    } catch(err) {
+      alert('Помилка імпорту: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+loadState();
+</script>
+</body>
+</html>
