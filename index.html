@@ -820,7 +820,9 @@ async function fetchInventory(steamId) {
 // Heuristic: only auto-add items that look like account "drops"
 // (weekly case drops, souvenir packages, etc.), not every skin in the inventory.
 function looksLikeDrop(name) {
-  return /\b(case|package|capsule|pin|sticker capsule|patch pack|music kit box)\b/i.test(name);
+  const n = name.toLowerCase();
+  return n.includes('case') || n.includes('capsule') || n.includes('package') 
+      || n.includes('terminal') || n.includes('sealed') || n.includes('container');
 }
 
 // Fetches profile + inventory for one account, updates state in-place.
