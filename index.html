@@ -276,7 +276,7 @@ async function proxyFetch(url) {
   const mode = state.proxyMode || 'auto';
 
   if (mode === 'direct') {
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (res.ok) return res;
     throw new Error('Direct request failed (likely blocked by CORS)');
   }
@@ -284,7 +284,7 @@ async function proxyFetch(url) {
   if (mode === 'custom') {
     const custom = (state.customProxy || '').trim();
     if (!custom) throw new Error('No custom proxy URL set in Settings');
-    const res = await fetch(custom + encodeURIComponent(url), { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(custom + encodeURIComponent(url), { signal: AbortSignal.timeout(15000) });
     if (res.ok) return res;
     throw new Error('Custom proxy is unavailable');
   }
@@ -292,7 +292,7 @@ async function proxyFetch(url) {
   if (mode === 'auto') {
     for (const key of PROXY_AUTO_ORDER) {
       try {
-        const res = await fetch(PROXY_OPTIONS[key] + encodeURIComponent(url), { signal: AbortSignal.timeout(8000) });
+        const res = await fetch(PROXY_OPTIONS[key] + encodeURIComponent(url), { signal: AbortSignal.timeout(15000) });
         if (res.ok) return res;
       } catch(e) { continue; }
     }
@@ -302,7 +302,7 @@ async function proxyFetch(url) {
   // Specific proxy selected
   const proxy = PROXY_OPTIONS[mode];
   if (!proxy) throw new Error('Unknown proxy mode');
-  const res = await fetch(proxy + encodeURIComponent(url), { signal: AbortSignal.timeout(8000) });
+  const res = await fetch(proxy + encodeURIComponent(url), { signal: AbortSignal.timeout(15000) });
   if (res.ok) return res;
   throw new Error('Selected proxy is unavailable');
 }
