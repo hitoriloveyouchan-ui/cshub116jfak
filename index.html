@@ -16,9 +16,46 @@
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  /* LOGIN */
+  /* ── ANIMATIONS ── */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse-accent {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(232,160,69,0); }
+    50%       { box-shadow: 0 0 0 6px rgba(232,160,69,0.18); }
+  }
+
+  .page.active .card,
+  .page.active .section {
+    animation: fadeInUp .28s ease both;
+  }
+  .page.active .card:nth-child(2) { animation-delay: .05s; }
+  .page.active .card:nth-child(3) { animation-delay: .10s; }
+  .page.active .card:nth-child(4) { animation-delay: .15s; }
+
+  .metric { animation: fadeInUp .3s ease both; }
+  .metric:nth-child(2) { animation-delay: .07s; }
+  .metric:nth-child(3) { animation-delay: .14s; }
+
+  .case-card { animation: fadeInUp .25s ease both; }
+
+  tbody tr {
+    transition: background .15s;
+  }
+
+  /* ── LOGIN ── */
   #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-  .login-box { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 36px 32px; width: 100%; max-width: 360px; }
+  .login-box { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 36px 32px; width: 100%; max-width: 360px; animation: fadeInUp .35s ease both; }
   .login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
   .login-logo-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 11px; color: #000; letter-spacing: -0.5px; }
   .login-title { font-size: 20px; font-weight: 700; }
@@ -26,49 +63,56 @@
   .login-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; margin-top: 4px; }
   .login-label { font-size: 12px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 6px; }
   .login-field { margin-bottom: 14px; }
-  .login-input { width: 100%; height: 40px; padding: 0 12px; font-size: 14px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); outline: none; }
+  .login-input { width: 100%; height: 40px; padding: 0 12px; font-size: 14px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); outline: none; transition: border-color .18s; }
   .login-input:focus { border-color: var(--accent); }
-  .login-btn { width: 100%; height: 42px; background: var(--accent); color: #000; font-size: 14px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; margin-top: 8px; }
-  .login-btn:hover { opacity: .88; }
+  .login-btn { width: 100%; height: 42px; background: var(--accent); color: #000; font-size: 14px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; margin-top: 8px; transition: opacity .15s, transform .12s; }
+  .login-btn:hover { opacity: .88; transform: translateY(-1px); }
+  .login-btn:active { transform: translateY(0); }
   .login-err { font-size: 13px; color: var(--red); margin-top: 12px; text-align: center; min-height: 18px; }
   .login-setup { font-size: 12px; color: var(--text2); margin-top: 18px; text-align: center; border-top: 0.5px solid var(--border); padding-top: 14px; line-height: 1.6; }
   .login-setup b { color: var(--text); }
 
-  /* APP */
-  #app { display: none; }
-  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid var(--border); background: var(--bg2); position: sticky; top: 0; z-index: 10; }
+  /* ── APP ── */
+  #app { display: none; animation: fadeIn .25s ease both; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 0.5px solid var(--border); background: var(--bg2); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); }
   .topbar-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
   .topbar-logo-icon { width: 26px; height: 26px; background: var(--accent); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 8px; color: #000; letter-spacing: -0.5px; flex-shrink: 0; }
   .topbar-title span { color: var(--accent); }
   .topbar-right { display: flex; align-items: center; gap: 8px; }
   .nav { display: flex; gap: 4px; }
-  .nav-btn { background: none; border: none; color: var(--text2); font-size: 14px; font-weight: 500; padding: 7px 14px; border-radius: var(--radius-sm); cursor: pointer; transition: all .15s; }
+  .nav-btn { background: none; border: none; color: var(--text2); font-size: 14px; font-weight: 500; padding: 7px 14px; border-radius: var(--radius-sm); cursor: pointer; transition: all .15s; position: relative; }
+  .nav-btn::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%) scaleX(0); width: 18px; height: 2px; background: var(--accent); border-radius: 2px; transition: transform .2s ease; }
   .nav-btn:hover { background: var(--bg3); color: var(--text); }
   .nav-btn.active { background: var(--bg3); color: var(--text); }
-  .logout-btn { background: none; border: 0.5px solid var(--border); color: var(--text2); font-size: 12px; padding: 5px 12px; border-radius: var(--radius-sm); cursor: pointer; }
+  .nav-btn.active::after { transform: translateX(-50%) scaleX(1); }
+  .logout-btn { background: none; border: 0.5px solid var(--border); color: var(--text2); font-size: 12px; padding: 5px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: color .15s, border-color .15s; }
   .logout-btn:hover { color: var(--red); border-color: var(--red); }
   .content { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
   .page { display: none; }
   .page.active { display: block; }
   .section { margin-bottom: 20px; }
-  .card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+  .card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px 20px; transition: border-color .2s; }
+  .card:hover { border-color: var(--border2); }
   h3 { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 12px; }
   .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-  input[type=text], input[type=number], input[type=password] { flex: 1; height: 38px; padding: 0 12px; font-size: 14px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); outline: none; }
+  input[type=text], input[type=number], input[type=password] { flex: 1; height: 38px; padding: 0 12px; font-size: 14px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); outline: none; transition: border-color .18s; }
   input:focus { border-color: var(--accent); }
   input::placeholder { color: var(--text2); }
   .btn { height: 38px; padding: 0 16px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: var(--radius-sm); border: none; transition: all .15s; white-space: nowrap; }
   .btn-default { background: var(--bg3); color: var(--text); border: 0.5px solid var(--border2); }
-  .btn-default:hover { background: rgba(255,255,255,.06); }
+  .btn-default:hover { background: rgba(255,255,255,.06); border-color: var(--border2); }
   .btn-accent { background: var(--accent); color: #000; }
-  .btn-accent:hover { opacity: .85; }
+  .btn-accent:hover { opacity: .85; transform: translateY(-1px); }
+  .btn-accent:active { transform: translateY(0); }
   .hint { font-size: 12px; color: var(--text2); margin-top: 6px; line-height: 1.5; }
   .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-  .tag { display: flex; align-items: center; gap: 8px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 5px 12px; font-size: 13px; }
-  .tag-x { background: none; border: none; cursor: pointer; color: var(--text2); font-size: 14px; line-height: 1; padding: 0; }
+  .tag { display: flex; align-items: center; gap: 8px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 5px 12px; font-size: 13px; transition: border-color .15s; }
+  .tag:hover { border-color: rgba(255,255,255,0.25); }
+  .tag-x { background: none; border: none; cursor: pointer; color: var(--text2); font-size: 14px; line-height: 1; padding: 0; transition: color .15s; }
   .tag-x:hover { color: var(--red); }
   .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .metric { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .metric { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; transition: border-color .2s, transform .2s; }
+  .metric:hover { border-color: var(--border2); transform: translateY(-2px); }
   .metric-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
   .metric-value { font-size: 26px; font-weight: 700; }
   .metric-value.accent { color: var(--accent); }
@@ -76,46 +120,80 @@
   th { text-align: left; padding: 9px 12px; color: var(--text2); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; border-bottom: 0.5px solid var(--border); }
   td { padding: 10px 12px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
-  tbody tr:hover { background: rgba(255,255,255,.02); }
-  .badge { border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
+  tbody tr:hover { background: rgba(255,255,255,.025); }
+  .badge { border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; transition: opacity .15s; }
   .badge-green { background: rgba(76,175,125,.15); color: var(--green); }
   .badge-gray { background: var(--bg3); color: var(--text2); }
   .case-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
-  .case-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; transition: border-color .15s; }
-  .case-card:hover { border-color: var(--border2); }
+  .case-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; transition: border-color .2s, transform .2s, box-shadow .2s; cursor: default; }
+  .case-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(232,160,69,0.1); }
   .case-name { font-size: 12px; color: var(--text2); margin-bottom: 8px; line-height: 1.4; }
   .case-qty { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
   .case-price-unit { font-size: 12px; color: var(--text2); }
   .case-total { font-size: 14px; font-weight: 600; color: var(--accent); margin-top: 6px; }
   .sync-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-  .sync-status { font-size: 13px; color: var(--text2); }
+  .sync-status { font-size: 13px; color: var(--text2); animation: fadeIn .2s ease; }
   .last-sync { font-size: 12px; color: var(--text2); margin-left: auto; }
   .empty { font-size: 13px; color: var(--text2); padding: 12px 0; }
   .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(0,0,0,.25); border-top-color: #000; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: -2px; margin-right: 6px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
   .acc-name-cell { font-weight: 500; }
   .acc-id-sub { font-size: 11px; color: var(--text2); font-family: monospace; margin-top: 2px; }
   .acc-alias { font-size: 11px; color: var(--accent); margin-top: 1px; }
-  .avatar { width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0; vertical-align: middle; background: var(--bg3); object-fit: cover; }
+  .avatar { width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0; vertical-align: middle; background: var(--bg3); object-fit: cover; transition: transform .2s; }
+  .avatar:hover { transform: scale(1.1); }
   .avatar-lg { width: 64px; height: 64px; border-radius: 10px; flex-shrink: 0; background: var(--bg3); object-fit: cover; }
   .acc-name-flex { display: flex; align-items: center; gap: 10px; }
   .acc-header-meta { font-size: 13px; color: var(--text2); margin-top: 4px; font-family: monospace; }
   .acc-header-name { font-size: 18px; font-weight: 700; }
-  .link-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 13px; font-weight: 600; padding: 0; text-decoration: underline; }
-  .link-btn:hover { opacity: .8; }
-  .steam-link { color: var(--accent); text-decoration: none; font-size: 12px; }
-  .steam-link:hover { opacity: .8; }
+  .link-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 13px; font-weight: 600; padding: 0; text-decoration: underline; transition: opacity .15s; }
+  .link-btn:hover { opacity: .7; }
+  .steam-link { color: var(--accent); text-decoration: none; font-size: 12px; transition: opacity .15s; }
+  .steam-link:hover { opacity: .75; }
   .sync-error-item { font-size: 12px; color: var(--red); padding: 6px 0; border-bottom: 0.5px solid var(--border); line-height: 1.5; }
   .sync-error-item:last-child { border-bottom: none; }
   .sync-error-item b { color: var(--text); font-weight: 600; }
 
-  /* PROFILE EDITOR MODAL */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-  .modal-overlay.open { display: flex; }
-  .modal-box { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 400px; }
+  /* ── DROPS PAGE ── */
+  .drops-add-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
+  .drops-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 16px; }
+  .drop-item-card {
+    background: var(--bg3);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+    animation: fadeInUp .25s ease both;
+  }
+  .drop-item-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(232,160,69,0.08); }
+  .drop-item-top { display: flex; align-items: center; gap: 10px; }
+  .drop-icon { width: 52px; height: 38px; object-fit: contain; border-radius: 4px; background: rgba(0,0,0,.25); flex-shrink: 0; }
+  .drop-icon-placeholder { width: 52px; height: 38px; border-radius: 4px; background: rgba(255,255,255,.05); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 18px; }
+  .drop-name { font-size: 12px; color: var(--text); font-weight: 500; line-height: 1.4; flex: 1; }
+  .drop-price-row { display: flex; align-items: center; gap: 6px; }
+  .drop-price-btn { width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--bg2); border: 0.5px solid var(--border2); color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; transition: background .15s, border-color .15s, transform .1s; display: flex; align-items: center; justify-content: center; }
+  .drop-price-btn:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.25); }
+  .drop-price-btn:active { transform: scale(.92); }
+  .drop-price-input {
+    flex: 1; height: 30px; padding: 0 8px; font-size: 13px; font-family: monospace; font-weight: 600;
+    background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
+    color: var(--accent); outline: none; text-align: center; transition: border-color .18s;
+    min-width: 0;
+  }
+  .drop-price-input:focus { border-color: var(--accent); animation: pulse-accent .5s ease; }
+  .drop-remove-btn { width: 28px; height: 28px; background: none; border: none; cursor: pointer; color: var(--text2); font-size: 14px; transition: color .15s, transform .15s; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+  .drop-remove-btn:hover { color: var(--red); transform: scale(1.15); }
+  .drops-empty { font-size: 13px; color: var(--text2); padding: 24px 0; text-align: center; }
+
+  /* ── MODAL ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; animation: fadeIn .18s ease; }
+  .modal-box { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 400px; animation: slideDown .22s ease both; }
   .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
   .modal-label { font-size: 12px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 6px; margin-top: 12px; }
-  .modal-input { width: 100%; height: 38px; padding: 0 12px; font-size: 14px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); outline: none; }
+  .modal-input { width: 100%; height: 38px; padding: 0 12px; font-size: 14px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); outline: none; transition: border-color .18s; }
   .modal-input:focus { border-color: var(--accent); }
   .modal-footer { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
 
@@ -124,6 +202,7 @@
     .nav-btn { padding: 6px 10px; font-size: 13px; }
     .content { padding: 16px 12px; }
     .case-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .drops-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
     .metric-value { font-size: 22px; }
     th, td { padding: 8px 8px; }
     .acc-id-sub { display: none; }
@@ -164,6 +243,7 @@
     <div class="topbar-right">
       <nav class="nav">
         <button class="nav-btn active" onclick="showPage('home')">Home</button>
+        <button class="nav-btn" onclick="showPage('drops')">Drops</button>
         <button class="nav-btn" onclick="showPage('settings')">Settings</button>
       </nav>
       <button class="logout-btn" onclick="doLogout()">Log out</button>
@@ -195,12 +275,12 @@
       </div>
       <div class="section">
         <h3 style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Cases</h3>
-        <div id="cases-empty" class="empty" style="display:none">No items yet. Add one in Settings.</div>
+        <div id="cases-empty" class="empty" style="display:none">No items yet. Add drops in the <button class="link-btn" onclick="showPage('drops')" style="font-size:13px">Drops</button> tab.</div>
         <div class="case-grid" id="cases-grid"></div>
       </div>
       <div class="section card" id="unmatched-section" style="display:none">
         <h3>Unmatched items in inventories</h3>
-        <div class="hint" style="margin-top:0;margin-bottom:10px">These item names were found in account inventories but don't match anything in "Items & prices". Cases/packages are added automatically after a refresh (with a $0 price — set the price in Settings). Other items below can be added manually if you want to track them.</div>
+        <div class="hint" style="margin-top:0;margin-bottom:10px">These item names were found in account inventories but don't match anything in "Drops". Cases/packages are added automatically after a refresh. Other items below can be added manually in the Drops tab.</div>
         <div class="tag-list" id="unmatched-list"></div>
       </div>
     </div>
@@ -211,12 +291,32 @@
       <div class="section card" id="account-header" style="display:flex;align-items:center;gap:16px"></div>
       <div class="section card" style="margin-top:20px">
         <h3>Cases on this account</h3>
-        <div class="hint" style="margin-top:0;margin-bottom:10px">Count from the inventory (Steam) + manual adjustment. If a drop hasn't shown up in the inventory yet (e.g. earned in a match but the client hasn't synced), add it manually — it'll count toward the total until the inventory updates.</div>
-        <div id="account-cases-empty" class="empty" style="display:none">No tracked items. Add items in Settings.</div>
+        <div class="hint" style="margin-top:0;margin-bottom:10px">Count from the inventory (Steam) + manual adjustment. If a drop hasn't shown up in the inventory yet, add it manually — it'll count toward the total until the inventory updates.</div>
+        <div id="account-cases-empty" class="empty" style="display:none">No tracked items. Add drops in the Drops tab.</div>
         <table id="account-cases-table" style="display:none">
           <thead><tr><th>Name</th><th>From inventory</th><th>Manual adjustment</th><th>Total</th><th>Price each</th><th>Sum</th></tr></thead>
           <tbody id="account-cases-body"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- DROPS -->
+    <div class="page" id="page-drops">
+      <div class="section card">
+        <h3>Add item</h3>
+        <div class="drops-add-row">
+          <input type="text" id="inp-item" placeholder="Name (exactly as on Steam Market)" style="flex:2" />
+          <input type="number" id="inp-price" placeholder="Price $" min="0" step="0.01" style="flex:0.6;min-width:90px" />
+          <button class="btn btn-accent" onclick="addItem()">Add</button>
+        </div>
+        <div class="hint">Example: Dreams &amp; Nightmares Case</div>
+      </div>
+      <div class="section">
+        <h3>Tracked drops</h3>
+        <div id="drops-items-wrap">
+          <div class="drops-empty" id="drops-empty" style="display:none">No drops yet. Add an item above.</div>
+          <div class="drops-grid" id="drops-grid"></div>
+        </div>
       </div>
     </div>
 
@@ -230,17 +330,6 @@
         </div>
         <div class="hint" id="steam-add-hint">You can enter a SteamID64 (76561198...) or a link like steamcommunity.com/id/ryusone. The inventory must be public.</div>
         <div class="tag-list" id="steam-tags"></div>
-      </div>
-
-      <div class="section card">
-        <h3>Items & prices</h3>
-        <div class="row">
-          <input type="text" id="inp-item" placeholder="Name (exactly as on Steam Market)" style="flex:2" />
-          <input type="number" id="inp-price" placeholder="Price $" min="0" step="0.01" style="flex:0.6;min-width:90px" />
-          <button class="btn btn-default" onclick="addItem()">Add</button>
-        </div>
-        <div class="hint">Example: Dreams &amp; Nightmares Case = 0.50</div>
-        <div class="tag-list" id="item-tags"></div>
       </div>
 
       <div class="section card">
@@ -269,7 +358,7 @@
           <input type="text" id="inp-custom-proxy" placeholder="https://my-proxy.com/?url=" oninput="onCustomProxyInput()" />
         </div>
         <div class="hint" id="proxy-hint">
-          Steam Community doesn't allow direct requests from the browser (CORS), so a proxy server is needed to forward the request. "Auto" tries the public proxies one by one. "No proxy" only works if you're running the site through your own CORS workaround (e.g. a local proxy server).
+          Steam Community doesn't allow direct requests from the browser (CORS), so a proxy server is needed to forward the request. "Auto" tries the public proxies one by one.
         </div>
       </div>
 
@@ -313,13 +402,11 @@ const LS_KEY = 'cs2tracker_v2';
 
 async function proxyFetch(url) {
   const mode = state.proxyMode || 'auto';
-
   if (mode === 'direct') {
     const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (res.ok) return res;
     throw new Error('Direct request failed (likely blocked by CORS)');
   }
-
   if (mode === 'custom') {
     const custom = (state.customProxy || '').trim();
     if (!custom) throw new Error('No custom proxy URL set in Settings');
@@ -327,7 +414,6 @@ async function proxyFetch(url) {
     if (res.ok) return res;
     throw new Error('Custom proxy is unavailable');
   }
-
   if (mode === 'auto') {
     for (const key of PROXY_AUTO_ORDER) {
       try {
@@ -337,7 +423,6 @@ async function proxyFetch(url) {
     }
     throw new Error('All proxies are unavailable');
   }
-
   const proxy = PROXY_OPTIONS[mode];
   if (!proxy) throw new Error('Unknown proxy mode');
   const res = await fetch(proxy + encodeURIComponent(url), { signal: AbortSignal.timeout(15000) });
@@ -352,15 +437,12 @@ function hashStr(str) {
   for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
   return (h >>> 0).toString(36);
 }
-
 function getAuth() {
   try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || null; } catch(e) { return null; }
 }
-
 function setAuth(login, pass) {
   localStorage.setItem(AUTH_KEY, JSON.stringify({ login, hash: hashStr(login + ':' + pass) }));
 }
-
 function checkSession() {
   return sessionStorage.getItem('cs2_session') === 'ok';
 }
@@ -370,7 +452,6 @@ function doLogin() {
   const pass = document.getElementById('inp-pass').value;
   const errEl = document.getElementById('login-err');
   errEl.textContent = '';
-
   const auth = getAuth();
   if (!auth) {
     if (!login || !pass) { errEl.textContent = 'Enter login and password'; return; }
@@ -380,7 +461,6 @@ function doLogin() {
     showApp();
     return;
   }
-
   if (auth.login === login && auth.hash === hashStr(login + ':' + pass)) {
     sessionStorage.setItem('cs2_session', 'ok');
     showApp();
@@ -420,14 +500,26 @@ function changeCredentials() {
 }
 
 // ── STATE ─────────────────────────────────────────────
-let state = { accounts: [], items: {}, inventories: {}, profiles: {}, aliases: {}, steamLinks: {}, lastSync: null, proxyMode: 'auto', customProxy: '', syncErrors: {}, manualDrops: {} };
+let state = {
+  accounts: [], items: {}, inventories: {}, profiles: {},
+  aliases: {}, steamLinks: {}, lastSync: null,
+  proxyMode: 'auto', customProxy: '',
+  syncErrors: {}, manualDrops: {}
+};
 
 function loadState() {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) state = Object.assign({ accounts: [], items: {}, inventories: {}, profiles: {}, aliases: {}, steamLinks: {}, lastSync: null, proxyMode: 'auto', customProxy: '', syncErrors: {}, manualDrops: {} }, JSON.parse(raw));
+    if (raw) state = Object.assign({
+      accounts: [], items: {}, inventories: {}, profiles: {},
+      aliases: {}, steamLinks: {}, lastSync: null,
+      proxyMode: 'auto', customProxy: '',
+      syncErrors: {}, manualDrops: {}
+    }, JSON.parse(raw));
     if (!state.aliases) state.aliases = {};
     if (!state.steamLinks) state.steamLinks = {};
+    if (!state.syncErrors) state.syncErrors = {};
+    if (!state.manualDrops) state.manualDrops = {};
   } catch(e) {}
   updateLoginHint();
   renderAll();
@@ -456,12 +548,10 @@ function openProfileModal(id) {
   document.getElementById('modal-link').value = state.steamLinks[id] || `https://steamcommunity.com/profiles/${id}`;
   document.getElementById('profile-modal').classList.add('open');
 }
-
 function closeProfileModal() {
   document.getElementById('profile-modal').classList.remove('open');
   modalAccountId = null;
 }
-
 function saveProfileModal() {
   if (!modalAccountId) return;
   const alias = document.getElementById('modal-alias').value.trim();
@@ -470,24 +560,23 @@ function saveProfileModal() {
   else delete state.aliases[modalAccountId];
   if (link) state.steamLinks[modalAccountId] = link;
   else delete state.steamLinks[modalAccountId];
-  saveState();
-  closeProfileModal();
-  renderAll();
+  saveState(); closeProfileModal(); renderAll();
   if (currentAccountId === modalAccountId) renderAccountPage(modalAccountId);
 }
-
-// Close modal on overlay click
 document.getElementById('profile-modal').addEventListener('click', function(e) {
   if (e.target === this) closeProfileModal();
 });
 
 // ── NAVIGATION ────────────────────────────────────────
+const NAV_PAGES = ['home', 'drops', 'settings'];
+
 function showPage(p) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('page-' + p).classList.add('active');
-  if (p === 'home') document.querySelectorAll('.nav-btn')[0].classList.add('active');
-  else if (p === 'settings') document.querySelectorAll('.nav-btn')[1].classList.add('active');
+  const idx = NAV_PAGES.indexOf(p);
+  if (idx !== -1) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  if (p === 'drops') renderDrops();
 }
 
 function openAccount(id) {
@@ -526,12 +615,12 @@ function renderAccountPage(id) {
   const avatarImg = prof && prof.avatar
     ? `<img class="avatar-lg" src="${escHtml(prof.avatar)}" alt="" onerror="this.style.visibility='hidden'">`
     : `<div class="avatar-lg"></div>`;
-  
+
   const displayName = getDisplayName(id);
   const steamName = prof ? prof.name : id;
   const alias = state.aliases && state.aliases[id];
   const steamLink = (state.steamLinks && state.steamLinks[id]) || `https://steamcommunity.com/profiles/${id}`;
-  
+
   const statusBadge = hasInv
     ? `<span class="badge badge-green">Loaded</span>`
     : `<span class="badge badge-gray">Not updated</span>`;
@@ -545,9 +634,7 @@ function renderAccountPage(id) {
       <div class="acc-header-name">${escHtml(displayName)}</div>
       ${alias ? `<div style="font-size:13px;color:var(--text2);margin-top:2px">${escHtml(steamName)}</div>` : ''}
       <div class="acc-header-meta">${id}</div>
-      <div style="margin-top:4px">
-        <a class="steam-link" href="${escHtml(steamLink)}" target="_blank" rel="noopener">↗ Open in Steam</a>
-      </div>
+      <div style="margin-top:4px"><a class="steam-link" href="${escHtml(steamLink)}" target="_blank" rel="noopener">↗ Open in Steam</a></div>
       <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         ${statusBadge}
         <button class="btn btn-accent" style="height:30px;font-size:12px;padding:0 12px" id="account-parse-btn" onclick="syncSingleAccountFromPage('${id}')">Parse account</button>
@@ -565,7 +652,7 @@ function renderAccountPage(id) {
   if (itemNames.length === 0) {
     table.style.display = 'none';
     emptyEl.style.display = '';
-    emptyEl.textContent = 'No tracked items. Add them in Settings.';
+    emptyEl.textContent = 'No tracked items. Add them in the Drops tab.';
   } else {
     table.style.display = 'table';
     emptyEl.style.display = 'none';
@@ -604,6 +691,116 @@ function adjustManualDrop(itemName, delta) {
   else state.manualDrops[currentAccountId][itemName] = next;
   saveState();
   renderAccountPage(currentAccountId);
+  renderHome();
+}
+
+// ── DROPS PAGE ────────────────────────────────────────
+// Steam Market CDN icon URL (small image)
+function getItemIconUrl(name) {
+  // Encode for steam market icon API
+  const encoded = encodeURIComponent(name);
+  return `https://community.cloudflare.steamstatic.com/economy/image/class/730/${encoded}/200fx200f`;
+}
+
+// Alternative: use Steam Market listing image
+function getMarketIconUrl(name) {
+  return `https://steamcommunity-a.akamaihd.net/economy/image/class/730/${encodeURIComponent(name)}/200fx200f`;
+}
+
+function renderDrops() {
+  const grid = document.getElementById('drops-grid');
+  const emptyEl = document.getElementById('drops-empty');
+  const itemNames = Object.keys(state.items);
+
+  if (itemNames.length === 0) {
+    emptyEl.style.display = '';
+    grid.innerHTML = '';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  grid.innerHTML = itemNames.map((name, i) => {
+    const price = state.items[name];
+    const nameAttr = escHtml(JSON.stringify(name));
+    const delay = Math.min(i * 0.04, 0.4);
+    // Market page thumbnail
+    const iconUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(name)}/render?count=1&currency=1&appid=730`;
+    return `
+      <div class="drop-item-card" style="animation-delay:${delay}s">
+        <div class="drop-item-top">
+          <img class="drop-icon"
+            src="https://community.cloudflare.steamstatic.com/economy/image/class/730/0/200fx200f"
+            data-name="${escHtml(name)}"
+            alt=""
+            onerror="this.style.display='none';this.nextSibling.style.display='flex'"
+          >
+          <div class="drop-icon-placeholder" style="display:none">🎁</div>
+          <div class="drop-name">${escHtml(name)}</div>
+        </div>
+        <div class="drop-price-row">
+          <button class="drop-price-btn" title="-$0.10" onclick='adjustDropPrice(${nameAttr}, -0.10)'>−</button>
+          <input
+            class="drop-price-input"
+            type="number"
+            min="0"
+            step="0.01"
+            value="${price.toFixed(2)}"
+            onchange='setDropPrice(${nameAttr}, this.value)'
+            onblur='setDropPrice(${nameAttr}, this.value)'
+          >
+          <button class="drop-price-btn" title="+$0.10" onclick='adjustDropPrice(${nameAttr}, 0.10)'>+</button>
+          <button class="drop-remove-btn" title="Remove" onclick='removeItem(${nameAttr})'>✕</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Load icons via Steam Market search API
+  loadDropIcons();
+}
+
+function loadDropIcons() {
+  const imgs = document.querySelectorAll('.drop-icon[data-name]');
+  imgs.forEach(img => {
+    const name = img.getAttribute('data-name');
+    // Use Steam market image via their CDN (no auth needed for icons)
+    // The classinfo approach: use market listing page image
+    const url = `https://community.cloudflare.steamstatic.com/economy/image/class/730/0/200fx200f`;
+    // Better: use the market icon by item name hash
+    // Fallback to the Steam Community Market icon approach
+    tryLoadIcon(img, name);
+  });
+}
+
+function tryLoadIcon(img, name) {
+  // Steam Market uses classid for icons; we can get a usable icon from the listings page
+  // Use a known working CDN pattern for CS2 items
+  const marketName = encodeURIComponent(name);
+  // Try the CDN icon approach via Steam market render
+  img.onerror = function() {
+    // Show placeholder emoji on error
+    this.style.display = 'none';
+    const placeholder = this.nextSibling;
+    if (placeholder) placeholder.style.display = 'flex';
+  };
+  // Use Steam's economy service directly
+  img.src = `https://steamcommunity.com/market/listings/730/${marketName}/icon`;
+}
+
+function adjustDropPrice(name, delta) {
+  const cur = state.items[name] || 0;
+  const next = Math.max(0, Math.round((cur + delta) * 100) / 100);
+  state.items[name] = next;
+  saveState();
+  renderDrops();
+  renderHome();
+}
+
+function setDropPrice(name, val) {
+  const p = parseFloat(val);
+  if (isNaN(p) || p < 0) return;
+  state.items[name] = Math.round(p * 100) / 100;
+  saveState();
   renderHome();
 }
 
@@ -666,18 +863,21 @@ function removeSteam(id) {
 
 function addItem() {
   const name = document.getElementById('inp-item').value.trim();
-  const price = parseFloat(document.getElementById('inp-price').value);
+  const price = parseFloat(document.getElementById('inp-price').value) || 0;
   if (!name) { alert('Enter an item name'); return; }
-  if (isNaN(price) || price < 0) { alert('Enter a valid price'); return; }
+  if (price < 0) { alert('Enter a valid price'); return; }
   state.items[name] = price;
   document.getElementById('inp-item').value = '';
   document.getElementById('inp-price').value = '';
-  saveState(); renderSettings(); renderHome();
+  saveState();
+  renderDrops();
+  renderHome();
 }
 
 function removeItem(name) {
+  if (!confirm(`Remove "${name}"?`)) return;
   delete state.items[name];
-  saveState(); renderSettings(); renderHome();
+  saveState(); renderDrops(); renderSettings(); renderHome();
 }
 
 // ── RENDER ────────────────────────────────────────────
@@ -687,7 +887,6 @@ function renderSettings() {
     ? state.accounts.map(id => {
         const p = state.profiles[id];
         const alias = state.aliases && state.aliases[id];
-        const displayName = alias || (p ? p.name : id);
         const label = alias ? `${escHtml(alias)} (${id})` : (p ? `${escHtml(p.name)} (${id})` : id);
         return `<div class="tag">${label}
           <button class="tag-x" style="color:var(--accent);font-size:11px;margin-right:2px" onclick="openProfileModal('${id}')" title="Edit">✏️</button>
@@ -695,13 +894,6 @@ function renderSettings() {
         </div>`;
       }).join('')
     : '<span style="font-size:13px;color:var(--text2)">No accounts</span>';
-
-  const il = document.getElementById('item-tags');
-  il.innerHTML = Object.keys(state.items).length
-    ? Object.entries(state.items).map(([n, p]) =>
-        `<div class="tag">${escHtml(n)} — $${p.toFixed(2)}<button class="tag-x" onclick="removeItem(${JSON.stringify(n)})">✕</button></div>`
-      ).join('')
-    : '<span style="font-size:13px;color:var(--text2)">No items</span>';
 
   document.getElementById('inp-proxy-mode').value = state.proxyMode || 'auto';
   document.getElementById('inp-custom-proxy').value = state.customProxy || '';
@@ -737,9 +929,7 @@ function computeAccount(id, itemIndex) {
   const found = {};
   for (const rawName of inv) {
     const key = itemIndex[normName(rawName)];
-    if (key !== undefined) {
-      found[key] = (found[key] || 0) + 1;
-    }
+    if (key !== undefined) found[key] = (found[key] || 0) + 1;
   }
   const manual = (state.manualDrops && state.manualDrops[id]) || {};
   for (const [key, qty] of Object.entries(manual)) {
@@ -837,10 +1027,11 @@ function renderHome() {
     casesEmpty.style.display = '';
   } else {
     casesEmpty.style.display = 'none';
-    grid.innerHTML = itemNames.map(name => {
+    grid.innerHTML = itemNames.map((name, i) => {
       const qty = caseCount[name] || 0;
       const total = (qty * state.items[name]).toFixed(2);
-      return `<div class="case-card">
+      const delay = Math.min(i * 0.04, 0.5);
+      return `<div class="case-card" style="animation-delay:${delay}s">
         <div class="case-name">${escHtml(name)}</div>
         <div class="case-qty">${qty}</div>
         <div class="case-price-unit">$${state.items[name].toFixed(2)} each</div>
@@ -945,7 +1136,6 @@ function autoAddDropItems(inv) {
 async function syncSingleAccountFromPage(id) {
   const btn = document.getElementById('account-parse-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Parsing...'; }
-
   if (!state.syncErrors) state.syncErrors = {};
   let newItemsCount = 0;
   try {
@@ -956,15 +1146,13 @@ async function syncSingleAccountFromPage(id) {
   } catch(e) {
     state.syncErrors[id] = e.message || 'Unknown error';
   }
-
   saveState();
   renderAccountPage(id);
   renderSettings();
-
   if (newItemsCount > 0) {
     const statusEl = document.getElementById('sync-status');
     if (statusEl) {
-      statusEl.textContent = `Added new items: ${newItemsCount} (set their prices in Settings)`;
+      statusEl.textContent = `Added new items: ${newItemsCount} (set their prices in the Drops tab)`;
       setTimeout(() => { statusEl.textContent = ''; }, 6000);
     }
   }
@@ -976,7 +1164,6 @@ async function syncSingleAccount(id) {
   const original = btn.textContent;
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>...';
-
   if (!state.syncErrors) state.syncErrors = {};
   let newItemsCount = 0;
   try {
@@ -987,17 +1174,12 @@ async function syncSingleAccount(id) {
   } catch(e) {
     state.syncErrors[id] = e.message || 'Unknown error';
   }
-
-  saveState();
-  renderHome();
-  renderSettings();
-
+  saveState(); renderHome(); renderSettings();
   const newBtn = document.getElementById('parse-btn-' + id);
   if (newBtn) { newBtn.disabled = false; newBtn.textContent = original; }
-
   if (newItemsCount > 0) {
     const statusEl = document.getElementById('sync-status');
-    statusEl.textContent = `Added new items: ${newItemsCount} (set their prices in Settings)`;
+    statusEl.textContent = `Added new items: ${newItemsCount} (set their prices in the Drops tab)`;
     setTimeout(() => { statusEl.textContent = ''; }, 6000);
   }
 }
@@ -1008,8 +1190,7 @@ async function runSync() {
   const statusEl = document.getElementById('sync-status');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Loading...';
-  let errors = 0;
-  let newItemsCount = 0;
+  let errors = 0, newItemsCount = 0;
   if (!state.syncErrors) state.syncErrors = {};
   const syncErrors = state.syncErrors;
 
@@ -1028,13 +1209,11 @@ async function runSync() {
   }
 
   state.lastSync = Date.now();
-  saveState();
-  renderHome();
-  renderSettings();
+  saveState(); renderHome(); renderSettings();
   btn.disabled = false;
   btn.textContent = 'Refresh inventories';
-  let msg = errors ? `Done. Errors: ${errors} — details below the accounts table` : 'Updated successfully ✓';
-  if (newItemsCount > 0) msg += ` Added new items: ${newItemsCount} (set their prices in Settings)`;
+  let msg = errors ? `Done. Errors: ${errors} — details below` : 'Updated successfully ✓';
+  if (newItemsCount > 0) msg += `. New items: ${newItemsCount} (set prices in Drops tab)`;
   statusEl.textContent = msg;
   setTimeout(() => { statusEl.textContent = ''; }, 6000);
 }
@@ -1056,7 +1235,12 @@ function importData(e) {
     try {
       const parsed = JSON.parse(ev.target.result);
       if (!parsed.accounts || !parsed.items) throw new Error('Invalid format');
-      state = Object.assign({ accounts: [], items: {}, inventories: {}, profiles: {}, aliases: {}, steamLinks: {}, lastSync: null, proxyMode: 'auto', customProxy: '', syncErrors: {}, manualDrops: {} }, parsed);
+      state = Object.assign({
+        accounts: [], items: {}, inventories: {}, profiles: {},
+        aliases: {}, steamLinks: {}, lastSync: null,
+        proxyMode: 'auto', customProxy: '',
+        syncErrors: {}, manualDrops: {}
+      }, parsed);
       saveState(); renderAll();
       alert('Data imported successfully!');
     } catch(err) { alert('Import error: ' + err.message); }
