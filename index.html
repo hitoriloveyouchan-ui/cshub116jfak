@@ -47,9 +47,6 @@
   .nav-btn.active { background: var(--bg3); color: var(--text); }
   .logout-btn { background: none; border: 0.5px solid var(--border); color: var(--text2); font-size: 12px; padding: 5px 12px; border-radius: var(--radius-sm); cursor: pointer; }
   .logout-btn:hover { color: var(--red); border-color: var(--red); }
-  .cloud-btn { background: none; border: 0.5px solid var(--border); color: var(--text2); font-size: 12px; padding: 5px 12px; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 5px; }
-  .cloud-btn:hover { color: var(--accent); border-color: var(--accent); }
-  .cloud-btn.synced { color: var(--green); border-color: var(--green); }
   .content { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
   .page { display: none; }
   .page.active { display: block; }
@@ -94,8 +91,7 @@
   .sync-status { font-size: 13px; color: var(--text2); }
   .last-sync { font-size: 12px; color: var(--text2); margin-left: auto; }
   .empty { font-size: 13px; color: var(--text2); padding: 12px 0; }
-  .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.2); border-top-color: currentColor; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: -2px; margin-right: 6px; }
-  .spinner-dark { border-color: rgba(0,0,0,.25); border-top-color: #000; }
+  .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(0,0,0,.25); border-top-color: #000; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: -2px; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .acc-name-cell { font-weight: 500; }
   .acc-id-sub { font-size: 11px; color: var(--text2); font-family: monospace; margin-top: 2px; }
@@ -112,6 +108,8 @@
   .sync-error-item { font-size: 12px; color: var(--red); padding: 6px 0; border-bottom: 0.5px solid var(--border); line-height: 1.5; }
   .sync-error-item:last-child { border-bottom: none; }
   .sync-error-item b { color: var(--text); font-weight: 600; }
+
+  /* PROFILE EDITOR MODAL */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
   .modal-overlay.open { display: flex; }
   .modal-box { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 400px; }
@@ -120,10 +118,7 @@
   .modal-input { width: 100%; height: 38px; padding: 0 12px; font-size: 14px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); outline: none; }
   .modal-input:focus { border-color: var(--accent); }
   .modal-footer { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
-  .cloud-status-bar { background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px; font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-  .cloud-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text2); flex-shrink: 0; }
-  .cloud-dot.green { background: var(--green); }
-  .cloud-dot.red { background: var(--red); }
+
   @media (max-width: 600px) {
     .topbar { padding: 12px 14px; }
     .nav-btn { padding: 6px 10px; font-size: 13px; }
@@ -132,7 +127,6 @@
     .metric-value { font-size: 22px; }
     th, td { padding: 8px 8px; }
     .acc-id-sub { display: none; }
-    .cloud-btn span.label { display: none; }
   }
 </style>
 </head>
@@ -168,12 +162,6 @@
       CS2 <span>Tracker</span>
     </div>
     <div class="topbar-right">
-      <button class="cloud-btn" id="cloud-push-btn" onclick="cloudPush()" title="Save to cloud">
-        ☁️ <span class="label">Save</span>
-      </button>
-      <button class="cloud-btn" id="cloud-pull-btn" onclick="cloudPull()" title="Load from cloud">
-        ⬇ <span class="label">Load</span>
-      </button>
       <nav class="nav">
         <button class="nav-btn active" onclick="showPage('home')">Home</button>
         <button class="nav-btn" onclick="showPage('settings')">Settings</button>
@@ -186,10 +174,6 @@
 
     <!-- HOME -->
     <div class="page active" id="page-home">
-      <div id="cloud-status-bar" class="cloud-status-bar" style="display:none">
-        <div class="cloud-dot" id="cloud-dot"></div>
-        <span id="cloud-status-text"></span>
-      </div>
       <div class="sync-bar">
         <button class="btn btn-accent" onclick="runSync()" id="sync-btn">Refresh inventories</button>
         <span class="sync-status" id="sync-status"></span>
@@ -216,7 +200,7 @@
       </div>
       <div class="section card" id="unmatched-section" style="display:none">
         <h3>Unmatched items in inventories</h3>
-        <div class="hint" style="margin-top:0;margin-bottom:10px">These item names were found in account inventories but don't match anything in "Items & prices".</div>
+        <div class="hint" style="margin-top:0;margin-bottom:10px">These item names were found in account inventories but don't match anything in "Items & prices". Cases/packages are added automatically after a refresh (with a $0 price — set the price in Settings). Other items below can be added manually if you want to track them.</div>
         <div class="tag-list" id="unmatched-list"></div>
       </div>
     </div>
@@ -227,7 +211,7 @@
       <div class="section card" id="account-header" style="display:flex;align-items:center;gap:16px"></div>
       <div class="section card" style="margin-top:20px">
         <h3>Cases on this account</h3>
-        <div class="hint" style="margin-top:0;margin-bottom:10px">Count from the inventory (Steam) + manual adjustment.</div>
+        <div class="hint" style="margin-top:0;margin-bottom:10px">Count from the inventory (Steam) + manual adjustment. If a drop hasn't shown up in the inventory yet (e.g. earned in a match but the client hasn't synced), add it manually — it'll count toward the total until the inventory updates.</div>
         <div id="account-cases-empty" class="empty" style="display:none">No tracked items. Add items in Settings.</div>
         <table id="account-cases-table" style="display:none">
           <thead><tr><th>Name</th><th>From inventory</th><th>Manual adjustment</th><th>Total</th><th>Price each</th><th>Sum</th></tr></thead>
@@ -260,16 +244,6 @@
       </div>
 
       <div class="section card">
-        <h3>Cloud sync</h3>
-        <div class="hint" style="margin-bottom:12px;margin-top:0">Your data is stored in Cloudflare KV and syncs across all devices. Use the same login/password on any device to access your data.</div>
-        <div class="row" style="flex-wrap:wrap;gap:8px">
-          <button class="btn btn-accent" style="gap:6px" onclick="cloudPush()">☁️ Save to cloud</button>
-          <button class="btn btn-default" onclick="cloudPull()">⬇ Load from cloud</button>
-        </div>
-        <div id="cloud-settings-status" class="hint" style="margin-top:8px"></div>
-      </div>
-
-      <div class="section card">
         <h3>Change credentials</h3>
         <div class="row">
           <input type="text" id="inp-new-login" placeholder="New login" style="flex:1" autocomplete="off" />
@@ -294,7 +268,9 @@
         <div class="row" id="custom-proxy-row" style="display:none">
           <input type="text" id="inp-custom-proxy" placeholder="https://my-proxy.com/?url=" oninput="onCustomProxyInput()" />
         </div>
-        <div class="hint">Steam Community doesn't allow direct requests from the browser (CORS), so a proxy server is needed.</div>
+        <div class="hint" id="proxy-hint">
+          Steam Community doesn't allow direct requests from the browser (CORS), so a proxy server is needed to forward the request. "Auto" tries the public proxies one by one. "No proxy" only works if you're running the site through your own CORS workaround (e.g. a local proxy server).
+        </div>
       </div>
 
       <div class="section card">
@@ -304,7 +280,7 @@
           <button class="btn btn-default" onclick="document.getElementById('import-file').click()">⬆ Import JSON</button>
           <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)" />
         </div>
-        <div class="hint">For manual backup/restore.</div>
+        <div class="hint">For transferring data between devices.</div>
       </div>
     </div>
 
@@ -327,7 +303,6 @@
 </div>
 
 <script>
-const WORKER_URL = 'https://cs2pars.hitoriloveyouchan.workers.dev';
 const PROXY_OPTIONS = {
   corsproxy: 'https://corsproxy.io/?',
   allorigins: 'https://api.allorigins.win/raw?url=',
@@ -335,29 +310,25 @@ const PROXY_OPTIONS = {
 };
 const PROXY_AUTO_ORDER = ['corsproxy', 'allorigins', 'corssh'];
 const LS_KEY = 'cs2tracker_v2';
-const AUTH_KEY = 'cs2tracker_auth';
 
-// ── PROXY ─────────────────────────────────────────────
 async function proxyFetch(url) {
   const mode = state.proxyMode || 'auto';
+
   if (mode === 'direct') {
     const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (res.ok) return res;
-    throw new Error('Direct request failed');
+    throw new Error('Direct request failed (likely blocked by CORS)');
   }
+
   if (mode === 'custom') {
     const custom = (state.customProxy || '').trim();
-    if (!custom) throw new Error('No custom proxy URL set');
+    if (!custom) throw new Error('No custom proxy URL set in Settings');
     const res = await fetch(custom + encodeURIComponent(url), { signal: AbortSignal.timeout(15000) });
     if (res.ok) return res;
     throw new Error('Custom proxy is unavailable');
   }
+
   if (mode === 'auto') {
-    // Try custom worker first
-    try {
-      const res = await fetch(WORKER_URL + '/?url=' + encodeURIComponent(url), { signal: AbortSignal.timeout(15000) });
-      if (res.ok) return res;
-    } catch(e) {}
     for (const key of PROXY_AUTO_ORDER) {
       try {
         const res = await fetch(PROXY_OPTIONS[key] + encodeURIComponent(url), { signal: AbortSignal.timeout(15000) });
@@ -366,6 +337,7 @@ async function proxyFetch(url) {
     }
     throw new Error('All proxies are unavailable');
   }
+
   const proxy = PROXY_OPTIONS[mode];
   if (!proxy) throw new Error('Unknown proxy mode');
   const res = await fetch(proxy + encodeURIComponent(url), { signal: AbortSignal.timeout(15000) });
@@ -373,26 +345,32 @@ async function proxyFetch(url) {
   throw new Error('Selected proxy is unavailable');
 }
 
-// ── AUTH ──────────────────────────────────────────────
+const AUTH_KEY = 'cs2tracker_auth';
+
 function hashStr(str) {
   let h = 5381;
   for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
   return (h >>> 0).toString(36);
 }
+
 function getAuth() {
   try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || null; } catch(e) { return null; }
 }
+
 function setAuth(login, pass) {
   localStorage.setItem(AUTH_KEY, JSON.stringify({ login, hash: hashStr(login + ':' + pass) }));
 }
+
 function checkSession() {
   return sessionStorage.getItem('cs2_session') === 'ok';
 }
+
 function doLogin() {
   const login = document.getElementById('inp-login').value.trim();
   const pass = document.getElementById('inp-pass').value;
   const errEl = document.getElementById('login-err');
   errEl.textContent = '';
+
   const auth = getAuth();
   if (!auth) {
     if (!login || !pass) { errEl.textContent = 'Enter login and password'; return; }
@@ -402,6 +380,7 @@ function doLogin() {
     showApp();
     return;
   }
+
   if (auth.login === login && auth.hash === hashStr(login + ':' + pass)) {
     sessionStorage.setItem('cs2_session', 'ok');
     showApp();
@@ -410,6 +389,7 @@ function doLogin() {
     document.getElementById('inp-pass').value = '';
   }
 }
+
 function doLogout() {
   sessionStorage.removeItem('cs2_session');
   document.getElementById('app').style.display = 'none';
@@ -418,13 +398,13 @@ function doLogout() {
   document.getElementById('inp-pass').value = '';
   document.getElementById('login-err').textContent = '';
 }
+
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   loadState();
-  // Auto-pull from cloud on login
-  setTimeout(() => cloudPull(true), 500);
 }
+
 function changeCredentials() {
   const login = document.getElementById('inp-new-login').value.trim();
   const pass = document.getElementById('inp-new-pass').value;
@@ -439,96 +419,16 @@ function changeCredentials() {
   setTimeout(() => { hint.textContent = ''; }, 3000);
 }
 
-// ── CLOUD SYNC ────────────────────────────────────────
-function getCloudParams() {
-  const auth = getAuth();
-  if (!auth) return null;
-  return { login: auth.login, hash: auth.hash };
-}
-
-function showCloudStatus(msg, type = 'info') {
-  const bar = document.getElementById('cloud-status-bar');
-  const dot = document.getElementById('cloud-dot');
-  const text = document.getElementById('cloud-status-text');
-  const settingsEl = document.getElementById('cloud-settings-status');
-  bar.style.display = 'flex';
-  dot.className = 'cloud-dot' + (type === 'ok' ? ' green' : type === 'err' ? ' red' : '');
-  text.textContent = msg;
-  if (settingsEl) { settingsEl.style.color = type === 'err' ? 'var(--red)' : type === 'ok' ? 'var(--green)' : 'var(--text2)'; settingsEl.textContent = msg; }
-  if (type !== 'loading') setTimeout(() => { bar.style.display = 'none'; if (settingsEl) settingsEl.textContent = ''; }, 4000);
-}
-
-async function cloudPush() {
-  const params = getCloudParams();
-  if (!params) { showCloudStatus('Not logged in', 'err'); return; }
-  const btn = document.getElementById('cloud-push-btn');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span><span class="label">Saving...</span>'; }
-  showCloudStatus('Saving to cloud...', 'loading');
-  try {
-    const body = JSON.stringify(state);
-    const res = await fetch(`${WORKER_URL}/sync/push?login=${encodeURIComponent(params.login)}&hash=${encodeURIComponent(params.hash)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      signal: AbortSignal.timeout(10000),
-    });
-    if (res.status === 401) { showCloudStatus('Wrong credentials', 'err'); return; }
-    if (!res.ok) throw new Error('Server error ' + res.status);
-    showCloudStatus('Saved to cloud ✓', 'ok');
-    if (btn) btn.classList.add('synced');
-    setTimeout(() => { if (btn) btn.classList.remove('synced'); }, 3000);
-  } catch(e) {
-    showCloudStatus('Save failed: ' + e.message, 'err');
-  } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '☁️ <span class="label">Save</span>'; }
-  }
-}
-
-async function cloudPull(silent = false) {
-  const params = getCloudParams();
-  if (!params) return;
-  const btn = document.getElementById('cloud-pull-btn');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span><span class="label">Loading...</span>'; }
-  if (!silent) showCloudStatus('Loading from cloud...', 'loading');
-  try {
-    const res = await fetch(`${WORKER_URL}/sync/pull?login=${encodeURIComponent(params.login)}&hash=${encodeURIComponent(params.hash)}`, {
-      signal: AbortSignal.timeout(10000),
-    });
-    if (res.status === 401) { if (!silent) showCloudStatus('Wrong credentials', 'err'); return; }
-    if (!res.ok) throw new Error('Server error ' + res.status);
-    const text = await res.text();
-    if (!text || text === 'null') {
-      if (!silent) showCloudStatus('No cloud data yet — save first', 'info');
-      return;
-    }
-    const parsed = JSON.parse(text);
-    if (!parsed.accounts) throw new Error('Invalid data');
-    state = Object.assign({ accounts: [], items: {}, inventories: {}, profiles: {}, aliases: {}, steamLinks: {}, lastSync: null, proxyMode: 'auto', customProxy: '', syncErrors: {}, manualDrops: {} }, parsed);
-    saveState();
-    renderAll();
-    if (!silent) showCloudStatus('Loaded from cloud ✓', 'ok');
-  } catch(e) {
-    if (!silent) showCloudStatus('Load failed: ' + e.message, 'err');
-  } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '⬇ <span class="label">Load</span>'; }
-  }
-}
-
 // ── STATE ─────────────────────────────────────────────
-let state = { accounts: [], items: {}, inventories: {}, profiles: {}, aliases: {}, steamLinks: {}, lastSync: null, proxyMode: 'custom', customProxy: '', syncErrors: {}, manualDrops: {} };
+let state = { accounts: [], items: {}, inventories: {}, profiles: {}, aliases: {}, steamLinks: {}, lastSync: null, proxyMode: 'auto', customProxy: '', syncErrors: {}, manualDrops: {} };
 
 function loadState() {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) state = Object.assign({ accounts: [], items: {}, inventories: {}, profiles: {}, aliases: {}, steamLinks: {}, lastSync: null, proxyMode: 'custom', customProxy: '', syncErrors: {}, manualDrops: {} }, JSON.parse(raw));
+    if (raw) state = Object.assign({ accounts: [], items: {}, inventories: {}, profiles: {}, aliases: {}, steamLinks: {}, lastSync: null, proxyMode: 'auto', customProxy: '', syncErrors: {}, manualDrops: {} }, JSON.parse(raw));
     if (!state.aliases) state.aliases = {};
     if (!state.steamLinks) state.steamLinks = {};
   } catch(e) {}
-  // Auto-set custom proxy if empty
-  if (!state.customProxy) {
-    state.customProxy = WORKER_URL + '/?url=';
-    state.proxyMode = 'custom';
-  }
   updateLoginHint();
   renderAll();
 }
@@ -549,16 +449,19 @@ function updateLoginHint() {
 
 // ── PROFILE MODAL ─────────────────────────────────────
 let modalAccountId = null;
+
 function openProfileModal(id) {
   modalAccountId = id;
   document.getElementById('modal-alias').value = state.aliases[id] || '';
   document.getElementById('modal-link').value = state.steamLinks[id] || `https://steamcommunity.com/profiles/${id}`;
   document.getElementById('profile-modal').classList.add('open');
 }
+
 function closeProfileModal() {
   document.getElementById('profile-modal').classList.remove('open');
   modalAccountId = null;
 }
+
 function saveProfileModal() {
   if (!modalAccountId) return;
   const alias = document.getElementById('modal-alias').value.trim();
@@ -572,6 +475,8 @@ function saveProfileModal() {
   renderAll();
   if (currentAccountId === modalAccountId) renderAccountPage(modalAccountId);
 }
+
+// Close modal on overlay click
 document.getElementById('profile-modal').addEventListener('click', function(e) {
   if (e.target === this) closeProfileModal();
 });
@@ -584,18 +489,13 @@ function showPage(p) {
   if (p === 'home') document.querySelectorAll('.nav-btn')[0].classList.add('active');
   else if (p === 'settings') document.querySelectorAll('.nav-btn')[1].classList.add('active');
 }
+
 function openAccount(id) {
   renderAccountPage(id);
   showPage('account');
 }
 
 let currentAccountId = null;
-
-function getDisplayName(id) {
-  if (state.aliases && state.aliases[id]) return state.aliases[id];
-  if (state.profiles[id]) return state.profiles[id].name;
-  return id;
-}
 
 function computeParsedFound(id, itemIndex) {
   const inv = state.inventories[id] || [];
@@ -608,6 +508,12 @@ function computeParsedFound(id, itemIndex) {
   return found;
 }
 
+function getDisplayName(id) {
+  if (state.aliases && state.aliases[id]) return state.aliases[id];
+  if (state.profiles[id]) return state.profiles[id].name;
+  return id;
+}
+
 function renderAccountPage(id) {
   currentAccountId = id;
   const prof = state.profiles[id];
@@ -616,39 +522,53 @@ function renderAccountPage(id) {
   const parsed = computeParsedFound(id, itemIndex);
   const manual = (state.manualDrops && state.manualDrops[id]) || {};
   const hasInv = state.inventories[id] !== undefined;
+
   const avatarImg = prof && prof.avatar
     ? `<img class="avatar-lg" src="${escHtml(prof.avatar)}" alt="" onerror="this.style.visibility='hidden'">`
     : `<div class="avatar-lg"></div>`;
+  
   const displayName = getDisplayName(id);
   const steamName = prof ? prof.name : id;
   const alias = state.aliases && state.aliases[id];
   const steamLink = (state.steamLinks && state.steamLinks[id]) || `https://steamcommunity.com/profiles/${id}`;
-  const statusBadge = hasInv ? `<span class="badge badge-green">Loaded</span>` : `<span class="badge badge-gray">Not updated</span>`;
+  
+  const statusBadge = hasInv
+    ? `<span class="badge badge-green">Loaded</span>`
+    : `<span class="badge badge-gray">Not updated</span>`;
+
   const err = (state.syncErrors || {})[id];
   const errHtml = err ? `<div class="sync-error-item" style="margin-top:8px">${escHtml(err)}</div>` : '';
+
   document.getElementById('account-header').innerHTML = `
     ${avatarImg}
     <div style="flex:1">
       <div class="acc-header-name">${escHtml(displayName)}</div>
       ${alias ? `<div style="font-size:13px;color:var(--text2);margin-top:2px">${escHtml(steamName)}</div>` : ''}
       <div class="acc-header-meta">${id}</div>
-      <div style="margin-top:4px"><a class="steam-link" href="${escHtml(steamLink)}" target="_blank" rel="noopener">↗ Open in Steam</a></div>
+      <div style="margin-top:4px">
+        <a class="steam-link" href="${escHtml(steamLink)}" target="_blank" rel="noopener">↗ Open in Steam</a>
+      </div>
       <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         ${statusBadge}
         <button class="btn btn-accent" style="height:30px;font-size:12px;padding:0 12px" id="account-parse-btn" onclick="syncSingleAccountFromPage('${id}')">Parse account</button>
         <button class="btn btn-default" style="height:30px;font-size:12px;padding:0 12px" onclick="openProfileModal('${id}')">✏️ Edit</button>
       </div>
       ${errHtml}
-    </div>`;
+    </div>
+  `;
+
   const itemNames = Object.keys(state.items);
   const table = document.getElementById('account-cases-table');
   const tbody = document.getElementById('account-cases-body');
   const emptyEl = document.getElementById('account-cases-empty');
+
   if (itemNames.length === 0) {
-    table.style.display = 'none'; emptyEl.style.display = '';
+    table.style.display = 'none';
+    emptyEl.style.display = '';
     emptyEl.textContent = 'No tracked items. Add them in Settings.';
   } else {
-    table.style.display = 'table'; emptyEl.style.display = 'none';
+    table.style.display = 'table';
+    emptyEl.style.display = 'none';
     tbody.innerHTML = itemNames.map(name => {
       const fromInv = parsed[name] || 0;
       const adj = manual[name] || 0;
@@ -659,11 +579,13 @@ function renderAccountPage(id) {
       return `<tr>
         <td>${escHtml(name)}</td>
         <td>${fromInv}</td>
-        <td><div style="display:flex;align-items:center;gap:6px">
-          <button class="btn btn-default" style="height:28px;width:28px;padding:0;font-size:14px" onclick='adjustManualDrop(${nameAttr}, -1)'>−</button>
-          <span style="min-width:18px;text-align:center;font-family:monospace">${adj > 0 ? '+' + adj : adj}</span>
-          <button class="btn btn-default" style="height:28px;width:28px;padding:0;font-size:14px" onclick='adjustManualDrop(${nameAttr}, 1)'>+</button>
-        </div></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="btn btn-default" style="height:28px;width:28px;padding:0;font-size:14px" onclick='adjustManualDrop(${nameAttr}, -1)'>−</button>
+            <span style="min-width:18px;text-align:center;font-family:monospace">${adj > 0 ? '+' + adj : adj}</span>
+            <button class="btn btn-default" style="height:28px;width:28px;padding:0;font-size:14px" onclick='adjustManualDrop(${nameAttr}, 1)'>+</button>
+          </div>
+        </td>
         <td style="font-weight:600">${total}</td>
         <td>$${price.toFixed(2)}</td>
         <td style="color:var(--accent);font-weight:600">$${sum}</td>
@@ -690,55 +612,69 @@ async function addSteam() {
   const raw = document.getElementById('inp-steam').value.trim();
   const hintEl = document.getElementById('steam-add-hint');
   if (!raw) return;
+
   if (/^\d{17}$/.test(raw)) {
-    if (state.accounts.includes(raw)) { alert('Already added'); return; }
-    state.accounts.push(raw);
+    const id = raw;
+    if (state.accounts.includes(id)) { alert('This account is already added'); return; }
+    state.accounts.push(id);
     document.getElementById('inp-steam').value = '';
-    saveState(); renderSettings(); renderHome(); return;
+    saveState(); renderSettings(); renderHome();
+    return;
   }
+
   let vanity = raw;
   const m = raw.match(/steamcommunity\.com\/id\/([^\/\?]+)/i);
   if (m) vanity = m[1];
+
   hintEl.style.color = 'var(--accent)';
-  hintEl.textContent = `Looking up "${vanity}"...`;
+  hintEl.textContent = `Looking up profile "${vanity}"...`;
+
   try {
     const steamId = await resolveVanityUrl(vanity);
-    if (!steamId) { hintEl.style.color='var(--red)'; hintEl.textContent='Profile not found.'; return; }
-    if (state.accounts.includes(steamId)) { hintEl.style.color='var(--red)'; hintEl.textContent='Already added'; return; }
+    if (!steamId) { hintEl.style.color='var(--red)'; hintEl.textContent='Profile not found. Check the nickname.'; return; }
+    if (state.accounts.includes(steamId)) { hintEl.style.color='var(--red)'; hintEl.textContent='This account is already added'; return; }
     state.accounts.push(steamId);
     document.getElementById('inp-steam').value = '';
     hintEl.style.color = 'var(--green)';
     hintEl.textContent = `Added! SteamID: ${steamId}`;
-    setTimeout(() => { hintEl.style.color=''; hintEl.textContent='You can enter a SteamID64 or steamcommunity.com/id/nickname.'; }, 3000);
+    setTimeout(() => { hintEl.style.color=''; hintEl.textContent='You can enter a SteamID64 (76561198...) or a link like steamcommunity.com/id/ryusone. The inventory must be public.'; }, 3000);
     saveState(); renderSettings(); renderHome();
   } catch(e) {
     hintEl.style.color = 'var(--red)';
-    hintEl.textContent = 'Error. Try SteamID64 manually.';
+    hintEl.textContent = 'Error looking up the profile. Try entering the SteamID64 manually.';
   }
 }
+
 async function resolveVanityUrl(vanity) {
-  const res = await proxyFetch(`https://steamcommunity.com/id/${vanity}/?xml=1`);
+  const url = `https://steamcommunity.com/id/${vanity}/?xml=1`;
+  const res = await proxyFetch(url);
   const text = await res.text();
   const xml = new DOMParser().parseFromString(text, 'text/xml');
-  return xml.querySelector('steamID64')?.textContent || null;
+  const steamId64 = xml.querySelector('steamID64')?.textContent;
+  return steamId64 || null;
 }
+
 function removeSteam(id) {
   if (!confirm('Remove account ' + id + '?')) return;
   state.accounts = state.accounts.filter(x => x !== id);
-  delete state.inventories[id]; delete state.profiles[id];
-  delete state.aliases[id]; delete state.steamLinks[id];
+  delete state.inventories[id];
+  delete state.profiles[id];
+  delete state.aliases[id];
+  delete state.steamLinks[id];
   saveState(); renderSettings(); renderHome();
 }
+
 function addItem() {
   const name = document.getElementById('inp-item').value.trim();
   const price = parseFloat(document.getElementById('inp-price').value);
-  if (!name) { alert('Enter item name'); return; }
-  if (isNaN(price) || price < 0) { alert('Enter valid price'); return; }
+  if (!name) { alert('Enter an item name'); return; }
+  if (isNaN(price) || price < 0) { alert('Enter a valid price'); return; }
   state.items[name] = price;
   document.getElementById('inp-item').value = '';
   document.getElementById('inp-price').value = '';
   saveState(); renderSettings(); renderHome();
 }
+
 function removeItem(name) {
   delete state.items[name];
   saveState(); renderSettings(); renderHome();
@@ -751,38 +687,49 @@ function renderSettings() {
     ? state.accounts.map(id => {
         const p = state.profiles[id];
         const alias = state.aliases && state.aliases[id];
+        const displayName = alias || (p ? p.name : id);
         const label = alias ? `${escHtml(alias)} (${id})` : (p ? `${escHtml(p.name)} (${id})` : id);
         return `<div class="tag">${label}
-          <button class="tag-x" style="color:var(--accent);font-size:11px" onclick="openProfileModal('${id}')" title="Edit">✏️</button>
+          <button class="tag-x" style="color:var(--accent);font-size:11px;margin-right:2px" onclick="openProfileModal('${id}')" title="Edit">✏️</button>
           <button class="tag-x" onclick="removeSteam('${id}')">✕</button>
         </div>`;
       }).join('')
     : '<span style="font-size:13px;color:var(--text2)">No accounts</span>';
+
   const il = document.getElementById('item-tags');
   il.innerHTML = Object.keys(state.items).length
     ? Object.entries(state.items).map(([n, p]) =>
         `<div class="tag">${escHtml(n)} — $${p.toFixed(2)}<button class="tag-x" onclick="removeItem(${JSON.stringify(n)})">✕</button></div>`
       ).join('')
     : '<span style="font-size:13px;color:var(--text2)">No items</span>';
-  document.getElementById('inp-proxy-mode').value = state.proxyMode || 'custom';
+
+  document.getElementById('inp-proxy-mode').value = state.proxyMode || 'auto';
   document.getElementById('inp-custom-proxy').value = state.customProxy || '';
   document.getElementById('custom-proxy-row').style.display = (state.proxyMode === 'custom') ? '' : 'none';
 }
+
 function onProxyModeChange() {
-  state.proxyMode = document.getElementById('inp-proxy-mode').value;
-  document.getElementById('custom-proxy-row').style.display = (state.proxyMode === 'custom') ? '' : 'none';
+  const mode = document.getElementById('inp-proxy-mode').value;
+  state.proxyMode = mode;
+  document.getElementById('custom-proxy-row').style.display = (mode === 'custom') ? '' : 'none';
   saveState();
 }
+
 function onCustomProxyInput() {
   state.customProxy = document.getElementById('inp-custom-proxy').value;
   saveState();
 }
-function normName(s) { return String(s).trim().replace(/\s+/g, ' ').toLowerCase(); }
+
+function normName(s) {
+  return String(s).trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
 function buildItemIndex() {
   const idx = {};
   for (const key of Object.keys(state.items)) idx[normName(key)] = key;
   return idx;
 }
+
 function computeAccount(id, itemIndex) {
   const inv = state.inventories[id] || [];
   itemIndex = itemIndex || buildItemIndex();
@@ -790,29 +737,37 @@ function computeAccount(id, itemIndex) {
   const found = {};
   for (const rawName of inv) {
     const key = itemIndex[normName(rawName)];
-    if (key !== undefined) found[key] = (found[key] || 0) + 1;
+    if (key !== undefined) {
+      found[key] = (found[key] || 0) + 1;
+    }
   }
   const manual = (state.manualDrops && state.manualDrops[id]) || {};
   for (const [key, qty] of Object.entries(manual)) {
-    if (Object.prototype.hasOwnProperty.call(state.items, key) && qty)
+    if (Object.prototype.hasOwnProperty.call(state.items, key) && qty) {
       found[key] = (found[key] || 0) + qty;
+    }
   }
   for (const [key, qty] of Object.entries(found)) {
     if (qty <= 0) { delete found[key]; continue; }
-    count += qty; value += qty * state.items[key];
+    count += qty;
+    value += qty * state.items[key];
   }
   return { count, value, found };
 }
+
 function findUnmatchedNames() {
   const itemIndex = buildItemIndex();
   const seen = new Set();
   for (const id of state.accounts) {
-    for (const rawName of (state.inventories[id] || [])) {
-      if (itemIndex[normName(rawName)] === undefined) seen.add(rawName);
+    const inv = state.inventories[id] || [];
+    for (const rawName of inv) {
+      const n = normName(rawName);
+      if (itemIndex[n] === undefined) seen.add(rawName);
     }
   }
   return Array.from(seen).sort();
 }
+
 function renderHome() {
   const accs = state.accounts;
   const itemNames = Object.keys(state.items);
@@ -820,29 +775,39 @@ function renderHome() {
   let totalItems = 0, totalValue = 0;
   const caseCount = {};
   itemNames.forEach(n => { caseCount[n] = 0; });
+
   accs.forEach(id => {
     const d = computeAccount(id, itemIndex);
-    totalItems += d.count; totalValue += d.value;
+    totalItems += d.count;
+    totalValue += d.value;
     for (const [n, c] of Object.entries(d.found)) caseCount[n] = (caseCount[n] || 0) + c;
   });
+
   document.getElementById('home-metrics').innerHTML = `
     <div class="metric"><div class="metric-label">Accounts</div><div class="metric-value">${accs.length}</div></div>
     <div class="metric"><div class="metric-label">Items</div><div class="metric-value">${totalItems}</div></div>
-    <div class="metric"><div class="metric-label">Value</div><div class="metric-value accent">$${totalValue.toFixed(2)}</div></div>`;
+    <div class="metric"><div class="metric-label">Value</div><div class="metric-value accent">$${totalValue.toFixed(2)}</div></div>
+  `;
+
   const tbody = document.getElementById('accounts-body');
   const tableWrap = document.getElementById('accounts-table-wrap');
   const emptyEl = document.getElementById('accounts-empty');
+
   if (accs.length === 0) {
-    tableWrap.style.display = 'none'; emptyEl.style.display = '';
+    tableWrap.style.display = 'none';
+    emptyEl.style.display = '';
   } else {
-    tableWrap.style.display = 'table'; emptyEl.style.display = 'none';
+    tableWrap.style.display = 'table';
+    emptyEl.style.display = 'none';
     tbody.innerHTML = accs.map(id => {
       const d = computeAccount(id, itemIndex);
       const hasInv = state.inventories[id] !== undefined;
       const prof = state.profiles[id];
       const alias = state.aliases && state.aliases[id];
       const steamLink = (state.steamLinks && state.steamLinks[id]) || `https://steamcommunity.com/profiles/${id}`;
-      const badge = hasInv ? `<span class="badge badge-green">Loaded</span>` : `<span class="badge badge-gray">Not updated</span>`;
+      const badge = hasInv
+        ? `<span class="badge badge-green">Loaded</span>`
+        : `<span class="badge badge-gray">Not updated</span>`;
       const avatarImg = prof && prof.avatar
         ? `<img class="avatar" src="${escHtml(prof.avatar)}" alt="" onerror="this.style.visibility='hidden'">`
         : `<div class="avatar"></div>`;
@@ -864,76 +829,97 @@ function renderHome() {
       </tr>`;
     }).join('');
   }
+
   const grid = document.getElementById('cases-grid');
   const casesEmpty = document.getElementById('cases-empty');
   if (itemNames.length === 0) {
-    grid.innerHTML = ''; casesEmpty.style.display = '';
+    grid.innerHTML = '';
+    casesEmpty.style.display = '';
   } else {
     casesEmpty.style.display = 'none';
     grid.innerHTML = itemNames.map(name => {
       const qty = caseCount[name] || 0;
+      const total = (qty * state.items[name]).toFixed(2);
       return `<div class="case-card">
         <div class="case-name">${escHtml(name)}</div>
         <div class="case-qty">${qty}</div>
         <div class="case-price-unit">$${state.items[name].toFixed(2)} each</div>
-        <div class="case-total">= $${(qty * state.items[name]).toFixed(2)}</div>
+        <div class="case-total">= $${total}</div>
       </div>`;
     }).join('');
   }
+
   const unmatched = findUnmatchedNames();
   const unmatchedSection = document.getElementById('unmatched-section');
+  const unmatchedList = document.getElementById('unmatched-list');
   if (unmatched.length === 0) {
     unmatchedSection.style.display = 'none';
   } else {
     unmatchedSection.style.display = '';
-    document.getElementById('unmatched-list').innerHTML = unmatched.map(n => `<div class="tag">${escHtml(n)}</div>`).join('');
+    unmatchedList.innerHTML = unmatched.map(name =>
+      `<div class="tag">${escHtml(name)}</div>`
+    ).join('');
   }
+
   const errEl = document.getElementById('sync-errors');
   const syncErrors = state.syncErrors || {};
   const errIds = Object.keys(syncErrors);
   if (errIds.length === 0) {
-    errEl.style.display = 'none'; errEl.innerHTML = '';
+    errEl.style.display = 'none';
+    errEl.innerHTML = '';
   } else {
     errEl.style.display = '';
-    errEl.innerHTML = errIds.map(id =>
-      `<div class="sync-error-item"><b>${escHtml(getDisplayName(id))}</b>: ${escHtml(syncErrors[id])}</div>`
-    ).join('');
+    errEl.innerHTML = errIds.map(id => {
+      const displayName = getDisplayName(id);
+      return `<div class="sync-error-item"><b>${escHtml(displayName)}</b>: ${escHtml(syncErrors[id])}</div>`;
+    }).join('');
   }
-  document.getElementById('last-sync').textContent = state.lastSync ? 'Updated: ' + new Date(state.lastSync).toLocaleString('en-US') : '';
+
+  const ls = document.getElementById('last-sync');
+  ls.textContent = state.lastSync ? 'Updated: ' + new Date(state.lastSync).toLocaleString('en-US') : '';
 }
+
 function renderAll() { renderSettings(); renderHome(); }
 
 // ── SYNC ──────────────────────────────────────────────
 async function fetchProfile(steamId) {
-  const res = await proxyFetch(`https://steamcommunity.com/profiles/${steamId}/?xml=1`);
+  const url = `https://steamcommunity.com/profiles/${steamId}/?xml=1`;
+  const res = await proxyFetch(url);
   const text = await res.text();
   const xml = new DOMParser().parseFromString(text, 'text/xml');
   const name = xml.querySelector('steamID')?.textContent || steamId;
-  const avatar = xml.querySelector('avatarMedium')?.textContent || xml.querySelector('avatarIcon')?.textContent || '';
+  const avatar = xml.querySelector('avatarMedium')?.textContent
+    || xml.querySelector('avatarIcon')?.textContent
+    || '';
   return { name, avatar };
 }
+
 async function fetchInventory(steamId) {
-  const res = await proxyFetch(`https://steamcommunity.com/inventory/${steamId}/730/2?l=english&count=500`);
+  const url = `https://steamcommunity.com/inventory/${steamId}/730/2?l=english&count=500`;
+  const res = await proxyFetch(url);
   const text = await res.text();
   let data;
   try { data = JSON.parse(text); }
   catch(e) {
-    if (/rate limit|too many requests|cloudflare|just a moment|access denied/i.test(text))
-      throw new Error('Rate limited. Try again later.');
-    throw new Error('Could not parse response');
+    if (/rate limit|too many requests|cloudflare|just a moment|access denied/i.test(text)) {
+      throw new Error('The proxy or Steam rate-limited the request. Try again later or change the proxy in Settings.');
+    }
+    throw new Error('Could not parse the response (proxy returned non-JSON)');
   }
-  if (data && data.success === false) throw new Error('Inventory is private or empty');
+  if (data && data.success === false) throw new Error('Inventory is private, empty, or temporarily limited by Steam');
   if (!data || !data.descriptions) return [];
   return data.assets.map(a => {
     const desc = data.descriptions.find(d => d.classid === a.classid && d.instanceid === a.instanceid);
     return desc?.market_hash_name;
   }).filter(Boolean);
 }
+
 function looksLikeDrop(name) {
   const n = name.toLowerCase();
   return n.includes('case') || n.includes('capsule') || n.includes('package')
       || n.includes('terminal') || n.includes('sealed') || n.includes('container');
 }
+
 async function fetchAccountData(id) {
   try { state.profiles[id] = await fetchProfile(id); } catch(e) {}
   await sleep(300);
@@ -941,88 +927,127 @@ async function fetchAccountData(id) {
   state.inventories[id] = inv;
   return inv;
 }
+
 function autoAddDropItems(inv) {
   const itemIndex = buildItemIndex();
   let added = 0;
   for (const rawName of inv) {
     const n = normName(rawName);
     if (itemIndex[n] === undefined && looksLikeDrop(rawName)) {
-      state.items[rawName] = 0; itemIndex[n] = rawName; added++;
+      state.items[rawName] = 0;
+      itemIndex[n] = rawName;
+      added++;
     }
   }
   return added;
 }
+
 async function syncSingleAccountFromPage(id) {
   const btn = document.getElementById('account-parse-btn');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-dark"></span>Parsing...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Parsing...'; }
+
   if (!state.syncErrors) state.syncErrors = {};
+  let newItemsCount = 0;
   try {
     const inv = await fetchAccountData(id);
     delete state.syncErrors[id];
-    autoAddDropItems(inv);
+    newItemsCount = autoAddDropItems(inv);
     state.lastSync = Date.now();
   } catch(e) {
     state.syncErrors[id] = e.message || 'Unknown error';
   }
+
   saveState();
   renderAccountPage(id);
   renderSettings();
+
+  if (newItemsCount > 0) {
+    const statusEl = document.getElementById('sync-status');
+    if (statusEl) {
+      statusEl.textContent = `Added new items: ${newItemsCount} (set their prices in Settings)`;
+      setTimeout(() => { statusEl.textContent = ''; }, 6000);
+    }
+  }
 }
+
 async function syncSingleAccount(id) {
   const btn = document.getElementById('parse-btn-' + id);
   if (!btn) return;
+  const original = btn.textContent;
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner spinner-dark"></span>';
+  btn.innerHTML = '<span class="spinner"></span>...';
+
   if (!state.syncErrors) state.syncErrors = {};
+  let newItemsCount = 0;
   try {
     const inv = await fetchAccountData(id);
     delete state.syncErrors[id];
-    autoAddDropItems(inv);
+    newItemsCount = autoAddDropItems(inv);
     state.lastSync = Date.now();
   } catch(e) {
     state.syncErrors[id] = e.message || 'Unknown error';
   }
-  saveState(); renderHome(); renderSettings();
+
+  saveState();
+  renderHome();
+  renderSettings();
+
   const newBtn = document.getElementById('parse-btn-' + id);
-  if (newBtn) { newBtn.disabled = false; newBtn.textContent = 'Parse'; }
+  if (newBtn) { newBtn.disabled = false; newBtn.textContent = original; }
+
+  if (newItemsCount > 0) {
+    const statusEl = document.getElementById('sync-status');
+    statusEl.textContent = `Added new items: ${newItemsCount} (set their prices in Settings)`;
+    setTimeout(() => { statusEl.textContent = ''; }, 6000);
+  }
 }
+
 async function runSync() {
-  if (state.accounts.length === 0) { alert('Add accounts first'); return; }
+  if (state.accounts.length === 0) { alert('First add accounts in Settings'); return; }
   const btn = document.getElementById('sync-btn');
   const statusEl = document.getElementById('sync-status');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner spinner-dark"></span>Loading...';
-  let errors = 0, newItems = 0;
+  btn.innerHTML = '<span class="spinner"></span>Loading...';
+  let errors = 0;
+  let newItemsCount = 0;
   if (!state.syncErrors) state.syncErrors = {};
+  const syncErrors = state.syncErrors;
+
   for (let i = 0; i < state.accounts.length; i++) {
     const id = state.accounts[i];
     statusEl.textContent = `Account ${i + 1}/${state.accounts.length}...`;
     try {
       const inv = await fetchAccountData(id);
-      delete state.syncErrors[id];
-      newItems += autoAddDropItems(inv);
+      delete syncErrors[id];
+      newItemsCount += autoAddDropItems(inv);
     } catch(e) {
-      errors++; state.syncErrors[id] = e.message || 'Unknown error';
+      errors++;
+      syncErrors[id] = e.message || 'Unknown error';
     }
     if (i < state.accounts.length - 1) await sleep(600);
   }
+
   state.lastSync = Date.now();
-  saveState(); renderHome(); renderSettings();
-  btn.disabled = false; btn.textContent = 'Refresh inventories';
-  let msg = errors ? `Done. Errors: ${errors}` : 'Updated successfully ✓';
-  if (newItems > 0) msg += ` · Added ${newItems} new items`;
+  saveState();
+  renderHome();
+  renderSettings();
+  btn.disabled = false;
+  btn.textContent = 'Refresh inventories';
+  let msg = errors ? `Done. Errors: ${errors} — details below the accounts table` : 'Updated successfully ✓';
+  if (newItemsCount > 0) msg += ` Added new items: ${newItemsCount} (set their prices in Settings)`;
   statusEl.textContent = msg;
   setTimeout(() => { statusEl.textContent = ''; }, 6000);
-  // Auto-push to cloud after sync
-  await cloudPush();
 }
 
-// ── DATA ──────────────────────────────────────────────
+// ── DATA EXPORT/IMPORT ────────────────────────────────
 function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }));
-  a.download = 'cs2tracker-backup.json'; a.click();
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cs2tracker-backup.json';
+  a.click();
 }
+
 function importData(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -1031,11 +1056,13 @@ function importData(e) {
     try {
       const parsed = JSON.parse(ev.target.result);
       if (!parsed.accounts || !parsed.items) throw new Error('Invalid format');
-      state = Object.assign({ accounts: [], items: {}, inventories: {}, profiles: {}, aliases: {}, steamLinks: {}, lastSync: null, proxyMode: 'custom', customProxy: '', syncErrors: {}, manualDrops: {} }, parsed);
-      saveState(); renderAll(); alert('Imported!');
+      state = Object.assign({ accounts: [], items: {}, inventories: {}, profiles: {}, aliases: {}, steamLinks: {}, lastSync: null, proxyMode: 'auto', customProxy: '', syncErrors: {}, manualDrops: {} }, parsed);
+      saveState(); renderAll();
+      alert('Data imported successfully!');
     } catch(err) { alert('Import error: ' + err.message); }
   };
-  reader.readAsText(file); e.target.value = '';
+  reader.readAsText(file);
+  e.target.value = '';
 }
 
 function escHtml(str) {
