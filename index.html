@@ -815,7 +815,7 @@ async function fetchInventory(steamId) {
   if (data && data.success === false) throw new Error('Inventory is private, empty, or temporarily limited by Steam');
   if (!data || !data.descriptions) return [];
   return data.assets.map(a => {
-  const desc = data.descriptions.find(d => d.classid === a.classid);
+  const desc = data.descriptions.find(d => d.classid === a.classid && d.instanceid === a.instanceid);
   return desc?.market_hash_name;
 }).filter(Boolean);
 }
