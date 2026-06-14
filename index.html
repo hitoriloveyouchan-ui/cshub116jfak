@@ -695,16 +695,34 @@ function adjustManualDrop(itemName, delta) {
 }
 
 // ── DROPS PAGE ────────────────────────────────────────
-// Steam Market CDN icon URL (small image)
-function getItemIconUrl(name) {
-  // Encode for steam market icon API
-  const encoded = encodeURIComponent(name);
-  return `https://community.cloudflare.steamstatic.com/economy/image/class/730/${encoded}/200fx200f`;
+// Icon cache: itemName → full CDN URL (persisted in localStorage)
+const ICON_CACHE_KEY = 'cs2tracker_icons';
+let iconCache = {};
+try { iconCache = JSON.parse(localStorage.getItem(ICON_CACHE_KEY)) || {}; } catch(e) {}
+
+function saveIconCache() {
+  try { localStorage.setItem(ICON_CACHE_KEY, JSON.stringify(iconCache)); } catch(e) {}
 }
 
-// Alternative: use Steam Market listing image
-function getMarketIconUrl(name) {
-  return `https://steamcommunity-a.akamaihd.net/economy/image/class/730/${encodeURIComponent(name)}/200fx200f`;
+// Fetch icon URL via Steam Market search API (returns JSON with icon_url)
+async function fetchIconUrl(name) {
+  if (iconCache[name]) return iconCache[name];
+  const url = `https://steamcommunity.com/market/search/render/?appid=730&query=${encodeURIComponent(name)}&count=1&search_descriptions=0&norender=0&currency=1`;
+  try {
+    const res = await proxyFetch(url);
+    const data = await res.json();
+    const item = data?.results?.[0];
+    if (!item) return null;
+    // icon_url is the hash part; full URL is:
+    const iconHash = item.asset_description?.icon_url;
+    if (!iconHash) return null;
+    const fullUrl = `https://community.cloudflare.steamstatic.com/economy/image/${iconHash}/200fx200f`;
+    iconCache[name] = fullUrl;
+    saveIconCache();
+    return fullUrl;
+  } catch(e) {
+    return null;
+  }
 }
 
 function renderDrops() {
@@ -723,18 +741,17 @@ function renderDrops() {
     const price = state.items[name];
     const nameAttr = escHtml(JSON.stringify(name));
     const delay = Math.min(i * 0.04, 0.4);
-    // Market page thumbnail
-    const iconUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(name)}/render?count=1&currency=1&appid=730`;
+    // Use cached icon immediately if available, otherwise placeholder
+    const cachedIcon = iconCache[name];
+    const imgHtml = cachedIcon
+      ? `<img class="drop-icon" src="${escHtml(cachedIcon)}" data-name="${escHtml(name)}" alt="" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+         <div class="drop-icon-placeholder" style="display:none">🎁</div>`
+      : `<img class="drop-icon" src="" data-name="${escHtml(name)}" alt="" style="display:none" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+         <div class="drop-icon-placeholder">🎁</div>`;
     return `
-      <div class="drop-item-card" style="animation-delay:${delay}s">
+      <div class="drop-item-card" style="animation-delay:${delay}s" id="drop-card-${i}">
         <div class="drop-item-top">
-          <img class="drop-icon"
-            src="https://community.cloudflare.steamstatic.com/economy/image/class/730/0/200fx200f"
-            data-name="${escHtml(name)}"
-            alt=""
-            onerror="this.style.display='none';this.nextSibling.style.display='flex'"
-          >
-          <div class="drop-icon-placeholder" style="display:none">🎁</div>
+          ${imgHtml}
           <div class="drop-name">${escHtml(name)}</div>
         </div>
         <div class="drop-price-row">
@@ -755,36 +772,28 @@ function renderDrops() {
     `;
   }).join('');
 
-  // Load icons via Steam Market search API
-  loadDropIcons();
+  // Load missing icons in background (one by one to avoid rate limiting)
+  loadMissingIcons(itemNames);
 }
 
-function loadDropIcons() {
-  const imgs = document.querySelectorAll('.drop-icon[data-name]');
-  imgs.forEach(img => {
-    const name = img.getAttribute('data-name');
-    // Use Steam market image via their CDN (no auth needed for icons)
-    // The classinfo approach: use market listing page image
-    const url = `https://community.cloudflare.steamstatic.com/economy/image/class/730/0/200fx200f`;
-    // Better: use the market icon by item name hash
-    // Fallback to the Steam Community Market icon approach
-    tryLoadIcon(img, name);
-  });
-}
-
-function tryLoadIcon(img, name) {
-  // Steam Market uses classid for icons; we can get a usable icon from the listings page
-  // Use a known working CDN pattern for CS2 items
-  const marketName = encodeURIComponent(name);
-  // Try the CDN icon approach via Steam market render
-  img.onerror = function() {
-    // Show placeholder emoji on error
-    this.style.display = 'none';
-    const placeholder = this.nextSibling;
-    if (placeholder) placeholder.style.display = 'flex';
-  };
-  // Use Steam's economy service directly
-  img.src = `https://steamcommunity.com/market/listings/730/${marketName}/icon`;
+async function loadMissingIcons(itemNames) {
+  const missing = itemNames.filter(n => !iconCache[n]);
+  for (const name of missing) {
+    const url = await fetchIconUrl(name);
+    if (url) {
+      // Find the img with this data-name and update it
+      const img = document.querySelector(`.drop-icon[data-name="${CSS.escape(name)}"]`);
+      if (img) {
+        const placeholder = img.nextSibling;
+        img.src = url;
+        img.style.display = '';
+        if (placeholder && placeholder.classList && placeholder.classList.contains('drop-icon-placeholder')) {
+          placeholder.style.display = 'none';
+        }
+      }
+    }
+    await sleep(200); // small delay between requests
+  }
 }
 
 function adjustDropPrice(name, delta) {
